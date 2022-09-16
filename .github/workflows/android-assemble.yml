@@ -23,3 +23,8 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew assemble
+    - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: apk
+          folder: app/build/outputs/apk
+          target-folder: /
