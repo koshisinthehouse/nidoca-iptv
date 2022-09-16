@@ -1,5 +1,6 @@
 package de.nidoca.webview.iptv;
 
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -17,6 +18,9 @@ import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.MediaController;
+
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +35,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.toolbar);
+
+
+        MediaController mc = new MediaController(this);
+        binding.videoView.setMediaController(mc);
+        binding.videoView.setVideoURI(Uri.parse("http://zdf-hls-15.akamaized.net/hls/live/2016498/de/high/master.m3u8"));
+
+
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();

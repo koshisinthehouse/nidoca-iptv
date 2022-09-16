@@ -31,4 +31,9 @@
         android:layout_marginBottom="16dp"
         app:srcCompat="@android:drawable/ic_dialog_email" />
 
+    <VideoView
+        android:id="@+id/videoView"
+        android:layout_width="wrap_content"
+        android:layout_height="417dp" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
