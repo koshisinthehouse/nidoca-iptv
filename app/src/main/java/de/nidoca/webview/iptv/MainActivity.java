@@ -3,6 +3,8 @@ package de.nidoca.webview.iptv;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,8 +20,6 @@ import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.MediaController;
-
 
 
 public class MainActivity extends AppCompatActivity {
@@ -36,11 +36,12 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
 
-
-        MediaController mc = new MediaController(this);
-        binding.videoView.setMediaController(mc);
-        binding.videoView.setVideoURI(Uri.parse("http://zdf-hls-15.akamaized.net/hls/live/2016498/de/high/master.m3u8"));
-
+        ExoPlayer player = new ExoPlayer.Builder(this).build();
+        binding.playerView.setPlayer(player);
+        MediaItem mediaItem = MediaItem.fromUri("http://zdf-hls-15.akamaized.net/hls/live/2016498/de/high/master.m3u8");
+        player.setMediaItem(mediaItem);
+        player.prepare();
+        player.play();
 
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
