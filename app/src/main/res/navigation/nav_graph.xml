@@ -9,7 +9,7 @@
         android:id="@+id/FirstFragment"
         android:name="de.nidoca.webview.iptv.FirstFragment"
         android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
+        tools:layout="@layout/fragment_player">
 
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"

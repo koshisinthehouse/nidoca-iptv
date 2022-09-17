@@ -7,8 +7,11 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
+
     <item android:id="@+id/media_route_menu_item"
-        android:title="Provider"
+        android:title="@string/media_route_menu_title"
         app:showAsAction="always"
+        android:icon="@drawable/ic_baseline_cast_24"
         app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"/>
+
 </menu>
