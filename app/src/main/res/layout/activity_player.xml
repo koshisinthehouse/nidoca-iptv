@@ -25,17 +25,17 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-
-        <ListView
-            android:id="@android:id/list"
-            android:layout_width="409dp"
-            android:layout_height="673dp"
-            android:layout_marginTop="1dp"
+        <com.google.android.exoplayer2.ui.PlayerView
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
+            android:id="@+id/player_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:resize_mode="fit"
+            app:surface_type="texture_view"
+            app:show_buffering="when_playing"
+            app:show_shuffle_button="true"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
