@@ -1,33 +1,18 @@
 package de.nidoca.webview.iptv;
 
-import android.app.DownloadManager;
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.MediaMetadata;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.Timeline;
+
 import com.google.android.exoplayer2.ext.cast.CastPlayer;
 import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener;
-import com.google.android.exoplayer2.source.hls.DefaultHlsDataSourceFactory;
-import com.google.android.exoplayer2.source.hls.HlsManifest;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
-
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
-import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 
@@ -35,18 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.TextView;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -63,22 +37,35 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
 
-
         ExoPlayer player = new ExoPlayer.Builder(this).build();
         binding.playerView.setPlayer(player);
 
 
-        ListView listView = binding.list;
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        CastContext castContext = CastContext.getSharedInstance(this);
+        final CastPlayer castPlayer = new CastPlayer(castContext);
+
+        castPlayer.setSessionAvailabilityListener(new SessionAvailabilityListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                player.stop();
-                Entry entry = (Entry) parent.getItemAtPosition(position);
-                System.out.println("Go: " + entry.getChannelUri());
-                MediaItem mediaItem = MediaItem.fromUri(entry.getChannelUri());
-                player.setMediaItem(mediaItem);
-                player.play();
+            public void onCastSessionAvailable() {
+                System.out.println("ADD Cast MEdia");
+                castPlayer.addMediaItem(player.getCurrentMediaItem());
             }
+
+            @Override
+            public void onCastSessionUnavailable() {
+            }
+        });
+        ListView listView = binding.list;
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            player.stop();
+            Entry entry = (Entry) parent.getItemAtPosition(position);
+            System.out.println("Go: " + entry.getChannelUri());
+            MediaItem mediaItem = MediaItem.fromUri(entry.getChannelUri());
+            player.clearMediaItems();
+            player.setMediaItem(mediaItem);
+            player.prepare();
+            player.play();
         });
 
         new LoadM3U(this, listView).execute();
