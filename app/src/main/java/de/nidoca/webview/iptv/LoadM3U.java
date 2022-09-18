@@ -35,13 +35,13 @@ public class LoadM3U extends AsyncTask<String, Void, List<Entry>> {
             conn.setConnectTimeout(60000); // timing out in a minute
 
             Parser parser = new Parser();
-            //InputStream inputStream = conn.getInputStream();
+            InputStream inputStream = conn.getInputStream();
             String a = "#EXTM3U\n" +
                     "#EXTINF:-1 tvg-name=\"Das Erste HD\" tvg-id=\"DasErste.de\" group-title=\"TV - Fernsehen FREE\",Das Erste HD\n" +
                     "https://mcdn.daserste.de/daserste/de/master.m3u8\n" +
                     "#EXTINF:-1 tvg-name=\"ZDF HD\" tvg-id=\"ZDF.de\" group-title=\"TV - Fernsehen FREE\",ZDF HD+\n" +
                     "https://zdf-hls-15.akamaized.net/hls/live/2016498/de/veryhigh/master.m3u8";
-            InputStream inputStream = new ByteArrayInputStream(a.getBytes());
+            //InputStream inputStream = new ByteArrayInputStream(a.getBytes());
             entries = parser.parse(inputStream);
 
             entries.forEach(entry -> {
