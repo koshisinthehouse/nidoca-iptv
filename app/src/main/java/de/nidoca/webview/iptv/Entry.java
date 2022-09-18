@@ -97,6 +97,7 @@ public class Entry {
         return channelName;
     }
 
+    /**
     @Override
     public String toString() {
         return "Entry{" +
@@ -110,6 +111,14 @@ public class Entry {
                 ", channelUri='" + channelUri + '\'' +
                 ", channelName='" + channelName + '\'' +
                 '}';
+    }
+    */
+
+    @Override
+    public String toString() {
+        return "tvgId='" + tvgId + '\'' +
+                ", tvgName='" + tvgName + '\'' +
+                ", tvgLogo='" + tvgLogo + "";
     }
 
     public static class Builder {

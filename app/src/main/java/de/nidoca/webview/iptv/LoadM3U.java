@@ -1,15 +1,19 @@
 package de.nidoca.webview.iptv;
 
 import android.os.AsyncTask;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoadM3U extends AsyncTask<String, Void, List<String>> {
+public class LoadM3U extends AsyncTask<String, Void, List<Entry>> {
 
     private final MainActivity mA;
     private ListView listView;
@@ -20,8 +24,8 @@ public class LoadM3U extends AsyncTask<String, Void, List<String>> {
     }
 
     @Override
-    protected List<String> doInBackground(String... strings) {
-        ArrayList<String> listItems = new ArrayList<String>();
+    protected List<Entry> doInBackground(String... strings) {
+        List<Entry> entries;
 
         try {
             // Create a URL for the desired page
@@ -30,13 +34,19 @@ public class LoadM3U extends AsyncTask<String, Void, List<String>> {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(60000); // timing out in a minute
 
-
             Parser parser = new Parser();
-            List<Entry> entries = parser.parse(conn.getInputStream());
+            //InputStream inputStream = conn.getInputStream();
+            String a = "#EXTM3U\n" +
+                    "#EXTINF:-1 tvg-name=\"Das Erste HD\" tvg-id=\"DasErste.de\" group-title=\"TV - Fernsehen FREE\",Das Erste HD\n" +
+                    "https://mcdn.daserste.de/daserste/de/master.m3u8\n" +
+                    "#EXTINF:-1 tvg-name=\"ZDF HD\" tvg-id=\"ZDF.de\" group-title=\"TV - Fernsehen FREE\",ZDF HD+\n" +
+                    "https://zdf-hls-15.akamaized.net/hls/live/2016498/de/veryhigh/master.m3u8";
+            InputStream inputStream = new ByteArrayInputStream(a.getBytes());
+            entries = parser.parse(inputStream);
 
             entries.forEach(entry -> {
 
-                listItems.add(entry.getTvgName());
+                //listItems.add(entry.getTvgName());
                 System.out.println(entry);
             });
 
@@ -45,16 +55,18 @@ public class LoadM3U extends AsyncTask<String, Void, List<String>> {
 
         }
 
-        return listItems;
+        return entries;
     }
 
     @Override
-    protected void onPostExecute(List<String> strings) {
+    protected void onPostExecute(List<Entry> strings) {
         super.onPostExecute(strings);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(mA,
+        ArrayAdapter<Entry> adapter = new ArrayAdapter<Entry>(mA,
                 android.R.layout.simple_list_item_1,
                 strings);
         listView.setAdapter(adapter);
+
+
 
     }
 

@@ -33,6 +33,8 @@ import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -62,18 +64,24 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(binding.toolbar);
 
 
-
         ExoPlayer player = new ExoPlayer.Builder(this).build();
-
-
-
+        binding.playerView.setPlayer(player);
 
 
         ListView listView = binding.list;
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                player.stop();
+                Entry entry = (Entry) parent.getItemAtPosition(position);
+                System.out.println("Go: " + entry.getChannelUri());
+                MediaItem mediaItem = MediaItem.fromUri(entry.getChannelUri());
+                player.setMediaItem(mediaItem);
+                player.play();
+            }
+        });
 
         new LoadM3U(this, listView).execute();
-
-
 
 
     }
