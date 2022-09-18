@@ -1,5 +1,6 @@
 package de.nidoca.webview.iptv;
 
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -28,6 +29,7 @@ import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -153,6 +155,21 @@ public class MainActivity extends AppCompatActivity {
             playOnPlayer(exoPlayer);
         }
 
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        System.out.println("CONF CHANGE");
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            System.out.println("LAND");
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            System.out.println("PORTRAIT");
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

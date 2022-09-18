@@ -116,9 +116,7 @@ public class Entry {
 
     @Override
     public String toString() {
-        return "tvgId='" + tvgId + '\'' +
-                ", tvgName='" + tvgName + '\'' +
-                ", tvgLogo='" + tvgLogo + "";
+        return tvgId;
     }
 
     public static class Builder {
