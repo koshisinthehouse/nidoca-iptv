@@ -1,4 +1,4 @@
-package de.nidoca.webview.iptv;
+package de.nidoca.webview.iptv.m3u;
 
 
 import java.io.BufferedReader;

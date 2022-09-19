@@ -1,5 +1,7 @@
 package de.nidoca.webview.iptv;
 
+
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 
@@ -23,12 +25,20 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.core.content.ContextCompat;
 import androidx.navigation.ui.AppBarConfiguration;
 
+import de.nidoca.webview.iptv.cache.NidocaPlayerCache;
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
+import de.nidoca.webview.iptv.m3u.Entry;
+import de.nidoca.webview.iptv.m3u.LoadM3U;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -37,12 +47,6 @@ import org.json.JSONObject;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    //static vars
-    private static MediaItem _currentMediaItem;
-    private static boolean _playWhenReady = true;
-    private static int _currentMediaItemIndex = 0;
-    private static Long _playbackPosition = 0l;
 
 
     private AppBarConfiguration appBarConfiguration;
@@ -53,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     private ExoPlayer exoPlayer = null;
     private CastPlayer castPlayer = null;
     private Player currentPlayer = null;
+    private StyledPlayerView playerView;
+    private ViewGroup playerViewParent;
 
 
     // the Cast context
@@ -85,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
             rememberState();
             releaseLocalPlayer();
         }
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
@@ -94,13 +101,14 @@ public class MainActivity extends AppCompatActivity {
             rememberState();
             releaseLocalPlayer();
         }
-
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     protected void onDestroy() {
         releaseRemotePlayer();
         currentPlayer = null;
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onDestroy();
     }
 
@@ -111,12 +119,25 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-
-        StyledPlayerView playerView = binding.playerView;
+        playerView = binding.playerView;
+        playerViewParent = (ViewGroup) playerView.getParent();
         playerView.setControllerAutoShow(false);
 
         playerView.setFullscreenButtonClickListener(isFullScreen -> {
-            playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+            if (isFullScreen) {
+                LinearLayout linearLayout = new LinearLayout(this);
+                linearLayout.setOrientation(LinearLayout.VERTICAL);
+                ((ViewGroup) playerView.getParent()).removeView(playerView);
+                linearLayout.addView(playerView);
+                setContentView(linearLayout);
+                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+            } else {
+                setContentView(binding.getRoot());
+                ((ViewGroup) playerView.getParent()).removeView(playerView);
+                playerViewParent.addView(playerView);
+
+
+            }
         });
 
 
@@ -126,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Entry entry = (Entry) parent.getItemAtPosition(position);
             com.google.android.exoplayer2.MediaMetadata mediaMetadata = new com.google.android.exoplayer2.MediaMetadata.Builder().setTitle(entry.getTvgName()).setSubtitle(entry.getTvgId()).setStation(entry.getChannelName()).build();
-            _currentMediaItem = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
+            NidocaPlayerCache.CURRENT_MEDIA_ITEM = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
             startPlayback();
         });
 
@@ -142,7 +163,17 @@ public class MainActivity extends AppCompatActivity {
 
         if (exoPlayer == null) {
             exoPlayer = new ExoPlayer.Builder(this).build();
-            binding.playerView.setPlayer(exoPlayer);
+            exoPlayer.addListener(new Player.Listener() {
+                @Override
+                public void onEvents(Player player, Player.Events events) {
+                    Player.Listener.super.onEvents(player, events);
+                    System.out.println(player.isPlaying());
+                    if (player.isPlaying() && !castPlayer.isCastSessionAvailable()) {
+                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    }
+                }
+            });
+            playerView.setPlayer(exoPlayer);
         }
 
         if (castPlayer == null) {
@@ -167,21 +198,6 @@ public class MainActivity extends AppCompatActivity {
             playOnPlayer(exoPlayer);
         }
 
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        System.out.println("CONF CHANGE");
-
-        // Checks the orientation of the screen
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            System.out.println("LAND");
-            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            System.out.println("PORTRAIT");
-            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
-        }
     }
 
     /**
@@ -212,23 +228,22 @@ public class MainActivity extends AppCompatActivity {
      */
     private void startPlayback() {
 
-        if (_currentMediaItem == null) {
+        if (NidocaPlayerCache.CURRENT_MEDIA_ITEM == null) {
             return;
 
         }
 
         if (exoPlayer != null && currentPlayer == exoPlayer) {
-            exoPlayer.setMediaItem(_currentMediaItem);
-            exoPlayer.setPlayWhenReady(_playWhenReady);
-            exoPlayer.seekTo(_currentMediaItemIndex, _playbackPosition);
+            exoPlayer.setMediaItem(NidocaPlayerCache.CURRENT_MEDIA_ITEM);
+            exoPlayer.setPlayWhenReady(NidocaPlayerCache.PLAY_WHEN_READY);
+            exoPlayer.seekTo(0, NidocaPlayerCache.PLAYBACK_POSITION);
             exoPlayer.prepare();
         }
 
         if (castPlayer != null && currentPlayer == castPlayer) {
-            //MediaItem currentMediaItem = exoPlayer.getCurrentMediaItem();
 
             MediaMetadata metadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
-            com.google.android.exoplayer2.MediaMetadata mediaMetadata = _currentMediaItem.mediaMetadata;
+            com.google.android.exoplayer2.MediaMetadata mediaMetadata = NidocaPlayerCache.CURRENT_MEDIA_ITEM.mediaMetadata;
             metadata.putString(MediaMetadata.KEY_TITLE, mediaMetadata.displayTitle != null ? mediaMetadata.displayTitle.toString() : "");
             metadata.putString(MediaMetadata.KEY_SUBTITLE, mediaMetadata.subtitle != null ? mediaMetadata.subtitle.toString() : "");
 
@@ -236,26 +251,17 @@ public class MainActivity extends AppCompatActivity {
             JSONObject jsonObject = new JSONObject();
             try {
                 JSONObject mediaItem = new JSONObject();
-                mediaItem.put("uri", _currentMediaItem.localConfiguration.uri.toString());
-                mediaItem.put("mediaId", _currentMediaItem.mediaId);
+                mediaItem.put("uri", NidocaPlayerCache.CURRENT_MEDIA_ITEM.localConfiguration.uri.toString());
+                mediaItem.put("mediaId", NidocaPlayerCache.CURRENT_MEDIA_ITEM.mediaId);
                 jsonObject.put("mediaItem", mediaItem);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            MediaInfo mediaInfo = new MediaInfo.Builder(_currentMediaItem.localConfiguration.uri.toString())
-                    .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-                    .setCustomData(jsonObject)
-                    .setContentType(MimeTypes.APPLICATION_M3U8)
-                    .setStreamDuration(exoPlayer.getDuration() * 1000)
-                    .setMetadata(metadata)
-                    .build();
-
-            MediaQueueItem mediaItem = new MediaQueueItem.Builder(mediaInfo).build();
+            MediaInfo mediaInfo = new MediaInfo.Builder(NidocaPlayerCache.CURRENT_MEDIA_ITEM.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_BUFFERED).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(exoPlayer.getDuration() * 1000).setMetadata(metadata).build();
 
             RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
             remoteMediaClient.load(new MediaLoadRequestData.Builder().setCustomData(jsonObject).setMediaInfo(mediaInfo).build());
 
-            //castPlayer.addMediaItem(exoPlayer.getCurrentMediaItem());
         }
     }
 
@@ -263,9 +269,8 @@ public class MainActivity extends AppCompatActivity {
      * Remembers the state of the playback of this Player.
      */
     private void rememberState() {
-        this._playWhenReady = this.currentPlayer.getPlayWhenReady();
-        this._playbackPosition = this.currentPlayer.getCurrentPosition();
-        this._currentMediaItemIndex = this.currentPlayer.getCurrentMediaItemIndex();
+        NidocaPlayerCache.PLAY_WHEN_READY = this.currentPlayer.getPlayWhenReady();
+        NidocaPlayerCache.PLAYBACK_POSITION = this.currentPlayer.getCurrentPosition();
     }
 
     /**
