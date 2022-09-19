@@ -1,7 +1,6 @@
 package de.nidoca.webview.iptv;
 
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.exoplayer2.ExoPlayer;
@@ -10,6 +9,8 @@ import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ext.cast.CastPlayer;
 import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.gms.cast.MediaInfo;
@@ -37,6 +38,13 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
+    //static vars
+    private static MediaItem _currentMediaItem;
+    private static boolean _playWhenReady = true;
+    private static int _currentMediaItemIndex = 0;
+    private static Long _playbackPosition = 0l;
+
+
     private AppBarConfiguration appBarConfiguration;
 
     private ActivityMainBinding binding;
@@ -46,17 +54,12 @@ public class MainActivity extends AppCompatActivity {
     private CastPlayer castPlayer = null;
     private Player currentPlayer = null;
 
-    private MediaItem currentMediaItem;
-
 
     // the Cast context
     private CastContext castContext;
     private MenuItem castButton;
 
     // Player state params
-    private boolean playWhenReady = true;
-    private int currentMediaItemIndex = 0;
-    private Long playbackPosition = 0l;
 
 
     @Override
@@ -108,13 +111,22 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+
+        StyledPlayerView playerView = binding.playerView;
+        playerView.setControllerAutoShow(false);
+
+        playerView.setFullscreenButtonClickListener(isFullScreen -> {
+            playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+        });
+
+
         setSupportActionBar(binding.toolbar);
 
         ListView listView = binding.list;
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Entry entry = (Entry) parent.getItemAtPosition(position);
             com.google.android.exoplayer2.MediaMetadata mediaMetadata = new com.google.android.exoplayer2.MediaMetadata.Builder().setTitle(entry.getTvgName()).setSubtitle(entry.getTvgId()).setStation(entry.getChannelName()).build();
-            currentMediaItem = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
+            _currentMediaItem = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
             startPlayback();
         });
 
@@ -166,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             System.out.println("LAND");
             Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             System.out.println("PORTRAIT");
             Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
         }
@@ -200,15 +212,15 @@ public class MainActivity extends AppCompatActivity {
      */
     private void startPlayback() {
 
-        if (currentMediaItem == null) {
+        if (_currentMediaItem == null) {
             return;
 
         }
 
         if (exoPlayer != null && currentPlayer == exoPlayer) {
-            exoPlayer.setMediaItem(currentMediaItem);
-            exoPlayer.setPlayWhenReady(playWhenReady);
-            exoPlayer.seekTo(currentMediaItemIndex, playbackPosition);
+            exoPlayer.setMediaItem(_currentMediaItem);
+            exoPlayer.setPlayWhenReady(_playWhenReady);
+            exoPlayer.seekTo(_currentMediaItemIndex, _playbackPosition);
             exoPlayer.prepare();
         }
 
@@ -216,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
             //MediaItem currentMediaItem = exoPlayer.getCurrentMediaItem();
 
             MediaMetadata metadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
-            com.google.android.exoplayer2.MediaMetadata mediaMetadata = currentMediaItem.mediaMetadata;
+            com.google.android.exoplayer2.MediaMetadata mediaMetadata = _currentMediaItem.mediaMetadata;
             metadata.putString(MediaMetadata.KEY_TITLE, mediaMetadata.displayTitle != null ? mediaMetadata.displayTitle.toString() : "");
             metadata.putString(MediaMetadata.KEY_SUBTITLE, mediaMetadata.subtitle != null ? mediaMetadata.subtitle.toString() : "");
 
@@ -224,13 +236,13 @@ public class MainActivity extends AppCompatActivity {
             JSONObject jsonObject = new JSONObject();
             try {
                 JSONObject mediaItem = new JSONObject();
-                mediaItem.put("uri", currentMediaItem.localConfiguration.uri.toString());
-                mediaItem.put("mediaId", currentMediaItem.mediaId);
+                mediaItem.put("uri", _currentMediaItem.localConfiguration.uri.toString());
+                mediaItem.put("mediaId", _currentMediaItem.mediaId);
                 jsonObject.put("mediaItem", mediaItem);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            MediaInfo mediaInfo = new MediaInfo.Builder(currentMediaItem.localConfiguration.uri.toString())
+            MediaInfo mediaInfo = new MediaInfo.Builder(_currentMediaItem.localConfiguration.uri.toString())
                     .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
                     .setCustomData(jsonObject)
                     .setContentType(MimeTypes.APPLICATION_M3U8)
@@ -251,9 +263,9 @@ public class MainActivity extends AppCompatActivity {
      * Remembers the state of the playback of this Player.
      */
     private void rememberState() {
-        this.playWhenReady = this.currentPlayer.getPlayWhenReady();
-        this.playbackPosition = this.currentPlayer.getCurrentPosition();
-        this.currentMediaItemIndex = this.currentPlayer.getCurrentMediaItemIndex();
+        this._playWhenReady = this.currentPlayer.getPlayWhenReady();
+        this._playbackPosition = this.currentPlayer.getCurrentPosition();
+        this._currentMediaItemIndex = this.currentPlayer.getCurrentMediaItemIndex();
     }
 
     /**

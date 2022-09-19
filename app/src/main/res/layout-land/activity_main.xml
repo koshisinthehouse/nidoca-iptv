@@ -15,9 +15,10 @@
         <ListView
             android:id="@android:id/list"
             android:layout_width="413dp"
-            android:layout_height="402dp" />
+            android:layout_height="match_parent" />
 
         <com.google.android.exoplayer2.ui.StyledPlayerView
+            app:resize_mode="fill"
             android:id="@+id/player_view"
             android:layout_width="match_parent"
             android:layout_height="240dp"
