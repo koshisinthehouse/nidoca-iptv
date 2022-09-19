@@ -5,17 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
-    android:shrinkColumns="0"
     android:stretchColumns="1"
     tools:context=".MainActivity">
-
     <TableRow
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_span="2"
             android:theme="@style/Theme.Nidocaiptv.AppBarOverlay">
 
             <androidx.appcompat.widget.Toolbar
@@ -27,30 +25,23 @@
 
         </com.google.android.material.appbar.AppBarLayout>
     </TableRow>
-
     <TableRow
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+        <ListView
+            android:id="@android:id/list"
+            android:layout_width="250dp"
+            android:layout_height="match_parent" />
 
         <com.google.android.exoplayer2.ui.StyledPlayerView
             android:id="@+id/player_view"
             android:layout_width="match_parent"
-            android:layout_height="240dp"
+            android:layout_height="match_parent"
             android:background="@color/black"
             app:resize_mode="fill"
             app:show_buffering="when_playing"
             app:show_shuffle_button="true" />
     </TableRow>
 
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
-        <ListView
-            android:id="@android:id/list"
-            android:layout_width="413dp"
-            android:layout_height="402dp" />
-    </TableRow>
 </TableLayout>
-
-
