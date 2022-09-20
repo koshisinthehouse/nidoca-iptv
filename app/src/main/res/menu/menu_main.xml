@@ -3,10 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="de.nidoca.webview.iptv.MainActivity">
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
+        android:id="@+id/action_upload"
         android:title="@string/action_settings"
-        app:showAsAction="never" />
+        android:icon="@drawable/ic_baseline_file_upload_24"
+        app:showAsAction="always" />
 
     <item android:id="@+id/media_route_menu_item"
         android:title="@string/media_route_menu_title"

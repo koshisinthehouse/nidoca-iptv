@@ -1,6 +1,10 @@
 package de.nidoca.webview.iptv;
 
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.exoplayer2.ExoPlayer;
@@ -21,9 +25,15 @@ import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
+import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.common.io.ByteStreams;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -32,22 +42,53 @@ import androidx.navigation.ui.AppBarConfiguration;
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 import de.nidoca.webview.iptv.m3u.Entry;
 import de.nidoca.webview.iptv.m3u.LoadM3U;
+import de.nidoca.webview.iptv.m3u.Parser;
 
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 
 public class MainActivity extends AppCompatActivity implements SessionAvailabilityListener {
+
+
+    private String appM3UFileName = "app.m3u";
+
+    private ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent intent = result.getData();
+                    String action = intent.getAction();
+                    Uri uri = intent.getData();
+                    try (InputStream inputStream = getContentResolver().openInputStream(uri);) {
+                        FileOutputStream fos = openFileOutput(appM3UFileName, Context.MODE_PRIVATE);
+                        fos.write(ByteStreams.toByteArray(inputStream));
+                        fos.close();
+                        initStations();
+                    } catch (IOException e) {
+                        Toast.makeText(MainActivity.this, "error reading file", Toast.LENGTH_SHORT);
+                    }
+                }
+            });
 
 
     private AppBarConfiguration appBarConfiguration;
@@ -55,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     private ActivityMainBinding binding;
 
     private MediaItem mediaItem;
+
+    private ListView listView;
 
     // the local and remote players
     private ExoPlayer exoPlayer = null;
@@ -116,6 +159,31 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         }
     }
 
+    public void initStations() {
+        File directory = getFilesDir();
+        File appM3UFile = new File(directory, appM3UFileName);
+        if (!appM3UFile.exists()) {
+            try {
+                if (!appM3UFile.createNewFile()) {
+                    Toast.makeText(this, "Fehler beim erstellen der Station Liste", Toast.LENGTH_SHORT);
+                }
+            } catch (IOException e) {
+                Toast.makeText(this, "Fehler beim erstellen der Station Liste", Toast.LENGTH_SHORT);
+            }
+        }
+        FileInputStream fileInputStream = null;
+        try {
+            fileInputStream = openFileInput(appM3UFileName);
+        } catch (FileNotFoundException e) {
+            Toast.makeText(this, "Fehler beim öffnen der station datei", Toast.LENGTH_SHORT);
+        }
+        Parser parser = new Parser();
+        List<Entry> entries = parser.parse(fileInputStream);
+        ArrayAdapter<Entry> adapter = new ArrayAdapter<Entry>(MainActivity.this,
+                android.R.layout.simple_list_item_1,
+                entries);
+        listView.setAdapter(adapter);
+    }
 
     @Override
     protected void onPause() {
@@ -225,14 +293,14 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //toolbar - end
 
         //listView - start
-        ListView listView = binding.list;
+        listView = binding.list;
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Entry entry = (Entry) parent.getItemAtPosition(position);
             com.google.android.exoplayer2.MediaMetadata mediaMetadata = new com.google.android.exoplayer2.MediaMetadata.Builder().setTitle(entry.getTvgName()).setSubtitle(entry.getTvgId()).setStation(entry.getChannelName()).build();
             this.mediaItem = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
             startPlayback();
         });
-        new LoadM3U(this, listView).execute();
+        initStations();
         //listView - end
 
 
@@ -256,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         } else {
             //exoPlayerView.setVisibility(View.VISIBLE);
         }
-        this.currentPlayer.prepare();
+
     }
 
     /**
@@ -271,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
         if (currentPlayer == exoPlayer) {
             exoPlayer.setMediaItem(this.mediaItem);
-            //exoPlayer.prepare();
+            exoPlayer.prepare();
         }
 
         if (castPlayer == currentPlayer) {
@@ -293,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             }
 
 
-            MediaInfo mediaInfo = new MediaInfo.Builder(this.mediaItem.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_BUFFERED).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(exoPlayer.getDuration() * 1000).setMetadata(metadata).build();
+            MediaInfo mediaInfo = new MediaInfo.Builder(this.mediaItem.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_LIVE).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(exoPlayer.getDuration() * 1000).setMetadata(metadata).build();
 
             RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
             remoteMediaClient.load(new MediaLoadRequestData.Builder().setCustomData(jsonObject).setMediaInfo(mediaInfo).build());
@@ -311,7 +379,10 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_upload) {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("file/*");
+            mStartForResult.launch(intent);
             return true;
         }
         return super.onOptionsItemSelected(item);
