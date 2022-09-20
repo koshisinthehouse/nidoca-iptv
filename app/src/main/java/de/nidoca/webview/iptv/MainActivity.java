@@ -27,7 +27,6 @@ import com.google.android.gms.tasks.Task;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.core.content.ContextCompat;
 import androidx.navigation.ui.AppBarConfiguration;
 
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
@@ -69,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     private CastContext castContext;
     private CastSession castSession;
     private SessionManager castSessionManager;
-    private SessionManagerListener<CastSession> mSessionManagerListener =
+    private SessionManagerListener<CastSession> sessionManagerListener =
             new SessionManagerListenerImpl();
 
     private class SessionManagerListenerImpl implements SessionManagerListener<CastSession> {
@@ -121,24 +120,43 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     @Override
     protected void onPause() {
         super.onPause();
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (this.currentPlayer == this.exoPlayer) {
+            this.currentPlayer.stop();
+        }
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (this.currentPlayer == this.exoPlayer) {
+            this.currentPlayer.stop();
+        }
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     protected void onDestroy() {
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        this.exoPlayer.release();
+        this.castPlayer.release();
+        this.currentPlayer = null;
         super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (this.currentPlayer == this.exoPlayer) {
+            this.currentPlayer.prepare();
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -164,19 +182,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //exoPlayerView - end
 
         //castPlayer - start
-        /**
-        castContext = CastContext.getSharedInstance(this);
-        castPlayer = new CastPlayer(castContext);
-        castPlayer.setPlayWhenReady(true);
-        castPlayer.setSessionAvailabilityListener(MainActivity.this);
-        castSessionManager = castContext.getSessionManager();
-        castSession = castSessionManager.getCurrentCastSession();
-        */
-        //castSessionManager.addSessionManagerListener(new SessionManagerListenerImpl(), CastSession.class);
-
-
-
-
         CastContext
                 .getSharedInstance(getApplicationContext(), Executors.newSingleThreadExecutor()).addOnCompleteListener(new OnCompleteListener<CastContext>() {
                     @Override
@@ -187,7 +192,8 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                         castPlayer.setSessionAvailabilityListener(MainActivity.this);
                         castSessionManager = castContext.getSessionManager();
                         castSession = castSessionManager.getCurrentCastSession();
-                        //castSessionManager.addSessionManagerListener(new SessionManagerListenerImpl(), CastSession.class);
+                        //WENN Session Manager dann kaputt muss auch removed werden ? https://developers.google.com/cast/docs/android_sender/integrate
+                        //castSessionManager.addSessionManagerListener(sessionManagerListener, CastSession.class);
                     }
                 });
 
