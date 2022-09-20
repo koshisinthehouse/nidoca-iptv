@@ -27,6 +27,7 @@ import com.google.android.gms.tasks.Task;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.core.content.ContextCompat;
 import androidx.navigation.ui.AppBarConfiguration;
 
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
@@ -74,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     private class SessionManagerListenerImpl implements SessionManagerListener<CastSession> {
         @Override
         public void onSessionStarted(CastSession session, String sessionId) {
-            invalidateOptionsMenu();
         }
 
         @Override
@@ -89,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
         @Override
         public void onSessionResumed(CastSession session, boolean wasSuspended) {
-            invalidateOptionsMenu();
         }
 
         @Override
@@ -122,18 +121,18 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     @Override
     protected void onPause() {
         super.onPause();
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     protected void onDestroy() {
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onDestroy();
     }
 
@@ -165,8 +164,21 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //exoPlayerView - end
 
         //castPlayer - start
+        /**
+        castContext = CastContext.getSharedInstance(this);
+        castPlayer = new CastPlayer(castContext);
+        castPlayer.setPlayWhenReady(true);
+        castPlayer.setSessionAvailabilityListener(MainActivity.this);
+        castSessionManager = castContext.getSessionManager();
+        castSession = castSessionManager.getCurrentCastSession();
+        */
+        //castSessionManager.addSessionManagerListener(new SessionManagerListenerImpl(), CastSession.class);
+
+
+
+
         CastContext
-                .getSharedInstance(this, Executors.newSingleThreadExecutor()).addOnCompleteListener(new OnCompleteListener<CastContext>() {
+                .getSharedInstance(getApplicationContext(), Executors.newSingleThreadExecutor()).addOnCompleteListener(new OnCompleteListener<CastContext>() {
                     @Override
                     public void onComplete(@NonNull Task<CastContext> task) {
                         castContext = task.getResult();
@@ -175,9 +187,10 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                         castPlayer.setSessionAvailabilityListener(MainActivity.this);
                         castSessionManager = castContext.getSessionManager();
                         castSession = castSessionManager.getCurrentCastSession();
-                        castSessionManager.addSessionManagerListener(new SessionManagerListenerImpl(), CastSession.class);
+                        //castSessionManager.addSessionManagerListener(new SessionManagerListenerImpl(), CastSession.class);
                     }
                 });
+
         //castPlayer - end
 
         //exoPlayer - start
@@ -226,16 +239,18 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         }
 
         if (this.currentPlayer != null) {
+            newPlayer.seekTo(this.currentPlayer.getCurrentMediaItemIndex(), this.currentPlayer.getCurrentPosition());
             currentPlayer.stop();
         }
 
         this.currentPlayer = newPlayer;
 
         if (currentPlayer == this.castPlayer) {
-            exoPlayerView.setVisibility(View.INVISIBLE);
+            //exoPlayerView.setVisibility(View.INVISIBLE);
         } else {
-            exoPlayerView.setVisibility(View.VISIBLE);
+            //exoPlayerView.setVisibility(View.VISIBLE);
         }
+        this.currentPlayer.prepare();
     }
 
     /**
@@ -248,12 +263,12 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
         }
 
-        if (exoPlayer != null && currentPlayer == exoPlayer) {
+        if (currentPlayer == exoPlayer) {
             exoPlayer.setMediaItem(this.mediaItem);
-            exoPlayer.prepare();
+            //exoPlayer.prepare();
         }
 
-        if (castPlayer != null && currentPlayer == castPlayer) {
+        if (castPlayer == currentPlayer) {
 
             MediaMetadata metadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
             com.google.android.exoplayer2.MediaMetadata mediaMetadata = this.mediaItem.mediaMetadata;
@@ -305,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     @Override
     public void onCastSessionUnavailable() {
         switchCurrentPlayer(exoPlayer);
-        startPlayback();
+        //startPlayback();
     }
 
 }
