@@ -34,6 +34,7 @@ import de.nidoca.webview.iptv.m3u.LoadM3U;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -52,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
     private ActivityMainBinding binding;
 
+    private MediaItem mediaItem;
+
     // the local and remote players
     private ExoPlayer exoPlayer = null;
     private CastPlayer castPlayer = null;
@@ -68,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         super.onPause();
         if (Util.SDK_INT < 24) {
             rememberState();
-            releaseLocalPlayer();
+            //releaseLocalPlayer();
         }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -78,15 +81,15 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         super.onStop();
         if (Util.SDK_INT >= 24) {
             rememberState();
-            releaseLocalPlayer();
+            //releaseLocalPlayer();
         }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     protected void onDestroy() {
-        releaseRemotePlayer();
-        currentPlayer = null;
+        //releaseRemotePlayer();
+        //currentPlayer = null;
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onDestroy();
     }
@@ -144,9 +147,9 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         });
         exoPlayerView.setPlayer(exoPlayer);
         if (castPlayer != null && castPlayer.isCastSessionAvailable()) {
-            playOnPlayer(castPlayer);
+            switchCurrentPlayer(castPlayer);
         } else {
-            playOnPlayer(exoPlayer);
+            switchCurrentPlayer(exoPlayer);
         }
         //exoPlayer - end
 
@@ -159,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Entry entry = (Entry) parent.getItemAtPosition(position);
             com.google.android.exoplayer2.MediaMetadata mediaMetadata = new com.google.android.exoplayer2.MediaMetadata.Builder().setTitle(entry.getTvgName()).setSubtitle(entry.getTvgId()).setStation(entry.getChannelName()).build();
-            NidocaPlayerCache.CURRENT_MEDIA_ITEM = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
+            this.mediaItem = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
             startPlayback();
         });
         new LoadM3U(this, listView).execute();
@@ -168,27 +171,29 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
     }
 
-    /**
-     * Sets the current player to the selected player and starts playback.
-     */
-    private void playOnPlayer(Player player) {
-        if (currentPlayer == player) {
+    private void switchCurrentPlayer(Player newPlayer) {
+
+        if (this.currentPlayer == newPlayer) {
             return;
         }
 
-        // save state from the existing player
-        if (currentPlayer != null) {
+        if (this.currentPlayer != null) {
             if (currentPlayer.getPlaybackState() != Player.STATE_ENDED) {
                 this.rememberState();
             }
             currentPlayer.stop();
         }
 
-        // set the new player
-        currentPlayer = player;
+        this.currentPlayer = newPlayer;
 
-        // set up the playback
+        if (currentPlayer == this.castPlayer) {
+            exoPlayerView.setVisibility(View.INVISIBLE);
+        } else {
+            exoPlayerView.setVisibility(View.VISIBLE);
+        }
+
         startPlayback();
+
     }
 
     /**
@@ -196,13 +201,13 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
      */
     private void startPlayback() {
 
-        if (NidocaPlayerCache.CURRENT_MEDIA_ITEM == null) {
+        if (this.mediaItem == null) {
             return;
 
         }
 
         if (exoPlayer != null && currentPlayer == exoPlayer) {
-            exoPlayer.setMediaItem(NidocaPlayerCache.CURRENT_MEDIA_ITEM);
+            exoPlayer.setMediaItem(this.mediaItem);
             exoPlayer.setPlayWhenReady(NidocaPlayerCache.PLAY_WHEN_READY);
             exoPlayer.seekTo(0, NidocaPlayerCache.PLAYBACK_POSITION);
             exoPlayer.prepare();
@@ -211,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         if (castPlayer != null && currentPlayer == castPlayer) {
 
             MediaMetadata metadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
-            com.google.android.exoplayer2.MediaMetadata mediaMetadata = NidocaPlayerCache.CURRENT_MEDIA_ITEM.mediaMetadata;
+            com.google.android.exoplayer2.MediaMetadata mediaMetadata = this.mediaItem.mediaMetadata;
             metadata.putString(MediaMetadata.KEY_TITLE, mediaMetadata.displayTitle != null ? mediaMetadata.displayTitle.toString() : "");
             metadata.putString(MediaMetadata.KEY_SUBTITLE, mediaMetadata.subtitle != null ? mediaMetadata.subtitle.toString() : "");
 
@@ -219,13 +224,13 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             JSONObject jsonObject = new JSONObject();
             try {
                 JSONObject mediaItem = new JSONObject();
-                mediaItem.put("uri", NidocaPlayerCache.CURRENT_MEDIA_ITEM.localConfiguration.uri.toString());
-                mediaItem.put("mediaId", NidocaPlayerCache.CURRENT_MEDIA_ITEM.mediaId);
+                mediaItem.put("uri", this.mediaItem.localConfiguration.uri.toString());
+                mediaItem.put("mediaId", this.mediaItem.mediaId);
                 jsonObject.put("mediaItem", mediaItem);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            MediaInfo mediaInfo = new MediaInfo.Builder(NidocaPlayerCache.CURRENT_MEDIA_ITEM.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_BUFFERED).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(exoPlayer.getDuration() * 1000).setMetadata(metadata).build();
+            MediaInfo mediaInfo = new MediaInfo.Builder(this.mediaItem.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_BUFFERED).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(exoPlayer.getDuration() * 1000).setMetadata(metadata).build();
 
             RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
             remoteMediaClient.load(new MediaLoadRequestData.Builder().setCustomData(jsonObject).setMediaInfo(mediaInfo).build());
@@ -288,12 +293,12 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
     @Override
     public void onCastSessionAvailable() {
-        playOnPlayer(castPlayer);
+        switchCurrentPlayer(castPlayer);
     }
 
     @Override
     public void onCastSessionUnavailable() {
-        playOnPlayer(exoPlayer);
+        switchCurrentPlayer(exoPlayer);
     }
 
 }
