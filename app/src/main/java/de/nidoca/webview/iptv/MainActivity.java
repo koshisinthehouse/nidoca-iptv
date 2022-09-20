@@ -12,12 +12,14 @@ import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.util.Util;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaLoadRequestData;
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastSession;
+import com.google.android.gms.cast.framework.SessionManager;
+import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -62,33 +64,75 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     private ViewGroup playerViewParent;
 
     // the Cast context
+    private MenuItem castMenuItem;
     private CastContext castContext;
-    private MenuItem castButton;
+    private CastSession castSession;
+    private SessionManager castSessionManager;
+    private SessionManagerListener<CastSession> mSessionManagerListener =
+            new SessionManagerListenerImpl();
+
+    private class SessionManagerListenerImpl implements SessionManagerListener<CastSession> {
+        @Override
+        public void onSessionStarted(CastSession session, String sessionId) {
+            invalidateOptionsMenu();
+        }
+
+        @Override
+        public void onSessionStarting(@NonNull CastSession castSession) {
+
+        }
+
+        @Override
+        public void onSessionSuspended(@NonNull CastSession castSession, int i) {
+
+        }
+
+        @Override
+        public void onSessionResumed(CastSession session, boolean wasSuspended) {
+            invalidateOptionsMenu();
+        }
+
+        @Override
+        public void onSessionResuming(@NonNull CastSession castSession, @NonNull String s) {
+
+        }
+
+        @Override
+        public void onSessionStartFailed(@NonNull CastSession castSession, int i) {
+
+        }
+
+        @Override
+        public void onSessionEnded(CastSession session, int error) {
+            finish();
+        }
+
+        @Override
+        public void onSessionEnding(@NonNull CastSession castSession) {
+
+        }
+
+        @Override
+        public void onSessionResumeFailed(@NonNull CastSession castSession, int i) {
+
+        }
+    }
+
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (Util.SDK_INT < 24) {
-            //rememberState();
-            //releaseLocalPlayer();
-        }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (Util.SDK_INT >= 24) {
-            //rememberState();
-            //releaseLocalPlayer();
-        }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     protected void onDestroy() {
-        //releaseRemotePlayer();
-        //currentPlayer = null;
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onDestroy();
     }
@@ -129,6 +173,9 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                         castPlayer = new CastPlayer(castContext);
                         castPlayer.setPlayWhenReady(true);
                         castPlayer.setSessionAvailabilityListener(MainActivity.this);
+                        castSessionManager = castContext.getSessionManager();
+                        castSession = castSessionManager.getCurrentCastSession();
+                        castSessionManager.addSessionManagerListener(new SessionManagerListenerImpl(), CastSession.class);
                     }
                 });
         //castPlayer - end
@@ -223,6 +270,8 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+
             MediaInfo mediaInfo = new MediaInfo.Builder(this.mediaItem.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_BUFFERED).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(exoPlayer.getDuration() * 1000).setMetadata(metadata).build();
 
             RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
@@ -234,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        castButton = CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), menu, R.id.media_route_menu_item);
+        castMenuItem = CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), menu, R.id.media_route_menu_item);
         return true;
     }
 
