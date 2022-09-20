@@ -22,7 +22,10 @@ import com.google.android.gms.cast.MediaQueueItem;
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.core.content.ContextCompat;
@@ -45,8 +48,10 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements SessionAvailabilityListener {
 
 
     private AppBarConfiguration appBarConfiguration;
@@ -140,6 +145,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        CastContext
+                .getSharedInstance(this, Executors.newSingleThreadExecutor()).addOnCompleteListener(new OnCompleteListener<CastContext>() {
+                    @Override
+                    public void onComplete(@NonNull Task<CastContext> task) {
+                        castContext = task.getResult();
+                        castPlayer = new CastPlayer(castContext);
+                        castPlayer.setSessionAvailabilityListener(MainActivity.this);
+                    }
+                });
+
 
         setSupportActionBar(binding.toolbar);
 
@@ -176,21 +191,6 @@ public class MainActivity extends AppCompatActivity {
             playerView.setPlayer(exoPlayer);
         }
 
-        if (castPlayer == null) {
-            castContext = CastContext.getSharedInstance(this);
-            castPlayer = new CastPlayer(castContext);
-            castPlayer.setSessionAvailabilityListener(new SessionAvailabilityListener() {
-                @Override
-                public void onCastSessionAvailable() {
-                    playOnPlayer(castPlayer);
-                }
-
-                @Override
-                public void onCastSessionUnavailable() {
-                    playOnPlayer(exoPlayer);
-                }
-            });
-        }
 
         if (castPlayer != null && castPlayer.isCastSessionAvailable()) {
             playOnPlayer(castPlayer);
@@ -316,6 +316,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCastSessionAvailable() {
+        playOnPlayer(castPlayer);
+    }
+
+    @Override
+    public void onCastSessionUnavailable() {
+        playOnPlayer(exoPlayer);
     }
 
 }
