@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   sodipodi:docname="logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.829812"
+     inkscape:cx="400.0411"
+     inkscape:cy="465.34835"
+     inkscape:window-width="1346"
+     inkscape:window-height="1230"
+     inkscape:window-x="537"
+     inkscape:window-y="90"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="624.48194"
+       y="189.35405"
+       width="71.877253"
+       height="100.47358"
+       id="rect4703" />
+  </defs>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g5560"
+       inkscape:export-filename="g5560.png"
+       inkscape:export-xdpi="371.56567"
+       inkscape:export-ydpi="371.56567">
+      <rect
+         style="fill:#1a4277;fill-opacity:1;stroke-width:0.324652;image-rendering:optimizeQuality"
+         id="rect111"
+         width="70"
+         height="70"
+         x="72.008766"
+         y="73.45472"
+         inkscape:export-filename="rect111.png"
+         inkscape:export-xdpi="371.56567"
+         inkscape:export-ydpi="371.56567" />
+      <text
+         xml:space="preserve"
+         style="font-size:25.4px;fill:#dba359;fill-opacity:1;stroke-width:0.264583"
+         x="77.420464"
+         y="115.22258"
+         id="text2825"><tspan
+           sodipodi:role="line"
+           id="tspan2823"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#dba359;fill-opacity:1;stroke-width:0.264583"
+           x="77.420464"
+           y="115.22258">IPTV</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#e2c379;fill-opacity:1;stroke-width:0.264583"
+         x="79.085327"
+         y="94.602959"
+         id="text4437"><tspan
+           sodipodi:role="line"
+           id="tspan4435"
+           style="font-size:7.05556px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.264583"
+           x="79.085327"
+           y="94.602959">NIDOCA</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#f3f3f3;fill-opacity:1;stroke-width:0.264583"
+         x="113.65237"
+         y="125.17393"
+         id="text4543"><tspan
+           sodipodi:role="line"
+           id="tspan4541"
+           style="font-size:9.87778px;stroke-width:0.264583"
+           x="113.65237"
+           y="125.17393">PRO</tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text4701"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';white-space:pre;shape-inside:url(#rect4703);display:inline;fill:#dba359;fill-opacity:1" />
+  </g>
+</svg>
