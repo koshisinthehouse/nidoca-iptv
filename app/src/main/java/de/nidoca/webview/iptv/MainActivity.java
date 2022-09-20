@@ -27,7 +27,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.navigation.ui.AppBarConfiguration;
 
-import de.nidoca.webview.iptv.cache.NidocaPlayerCache;
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 import de.nidoca.webview.iptv.m3u.Entry;
 import de.nidoca.webview.iptv.m3u.LoadM3U;
@@ -70,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     protected void onPause() {
         super.onPause();
         if (Util.SDK_INT < 24) {
-            rememberState();
+            //rememberState();
             //releaseLocalPlayer();
         }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -80,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     protected void onStop() {
         super.onStop();
         if (Util.SDK_INT >= 24) {
-            rememberState();
+            //rememberState();
             //releaseLocalPlayer();
         }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -128,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                     public void onComplete(@NonNull Task<CastContext> task) {
                         castContext = task.getResult();
                         castPlayer = new CastPlayer(castContext);
+                        castPlayer.setPlayWhenReady(true);
                         castPlayer.setSessionAvailabilityListener(MainActivity.this);
                     }
                 });
@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //exoPlayer - start
         //must init after CastContext
         exoPlayer = new ExoPlayer.Builder(this).build();
+        exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(new Player.Listener() {
             @Override
             public void onEvents(Player player, Player.Events events) {
@@ -178,9 +179,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         }
 
         if (this.currentPlayer != null) {
-            if (currentPlayer.getPlaybackState() != Player.STATE_ENDED) {
-                this.rememberState();
-            }
             currentPlayer.stop();
         }
 
@@ -191,9 +189,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         } else {
             exoPlayerView.setVisibility(View.VISIBLE);
         }
-
-        startPlayback();
-
     }
 
     /**
@@ -208,8 +203,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
         if (exoPlayer != null && currentPlayer == exoPlayer) {
             exoPlayer.setMediaItem(this.mediaItem);
-            exoPlayer.setPlayWhenReady(NidocaPlayerCache.PLAY_WHEN_READY);
-            exoPlayer.seekTo(0, NidocaPlayerCache.PLAYBACK_POSITION);
             exoPlayer.prepare();
         }
 
@@ -238,37 +231,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         }
     }
 
-    /**
-     * Remembers the state of the playback of this Player.
-     */
-    private void rememberState() {
-        NidocaPlayerCache.PLAY_WHEN_READY = this.currentPlayer.getPlayWhenReady();
-        NidocaPlayerCache.PLAYBACK_POSITION = this.currentPlayer.getCurrentPosition();
-    }
-
-    /**
-     * Releases the resources of the local player back to the system.
-     */
-    private void releaseLocalPlayer() {
-        if (exoPlayer != null) {
-            exoPlayer.release();
-            exoPlayer = null;
-            binding.playerView.setPlayer(null);
-        }
-    }
-
-    /**
-     * Releases the resources of the remote player back to the system.
-     */
-    private void releaseRemotePlayer() {
-        if (castPlayer != null) {
-            castPlayer.setSessionAvailabilityListener(null);
-            castPlayer.release();
-            castPlayer = null;
-        }
-    }
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -278,27 +240,23 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onCastSessionAvailable() {
         switchCurrentPlayer(castPlayer);
+        startPlayback();
     }
 
     @Override
     public void onCastSessionUnavailable() {
         switchCurrentPlayer(exoPlayer);
+        startPlayback();
     }
 
 }
