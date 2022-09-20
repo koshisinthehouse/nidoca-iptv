@@ -8,7 +8,7 @@
    version="1.1"
    id="svg5"
    inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
-   sodipodi:docname="logo.svg"
+   sodipodi:docname="inkscape_logo.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -24,17 +24,41 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="1.829812"
-     inkscape:cx="400.0411"
-     inkscape:cy="465.34835"
-     inkscape:window-width="1346"
-     inkscape:window-height="1230"
-     inkscape:window-x="537"
-     inkscape:window-y="90"
-     inkscape:window-maximized="0"
+     inkscape:zoom="1"
+     inkscape:cx="127"
+     inkscape:cy="548"
+     inkscape:window-width="3440"
+     inkscape:window-height="1377"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
   <defs
      id="defs2">
+    <linearGradient
+       id="linearGradient3926"
+       inkscape:swatch="solid">
+      <stop
+         style="stop-color:#dba359;stop-opacity:1;"
+         offset="0"
+         id="stop3924" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3918"
+       inkscape:swatch="solid">
+      <stop
+         style="stop-color:#dba359;stop-opacity:0;"
+         offset="0"
+         id="stop3916" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient1950"
+       inkscape:swatch="solid">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop1948" />
+    </linearGradient>
     <rect
        x="624.48194"
        y="189.35405"
@@ -46,59 +70,99 @@
      inkscape:label="Ebene 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <g
-       id="g5560"
-       inkscape:export-filename="g5560.png"
-       inkscape:export-xdpi="371.56567"
-       inkscape:export-ydpi="371.56567">
-      <rect
-         style="fill:#1a4277;fill-opacity:1;stroke-width:0.324652;image-rendering:optimizeQuality"
-         id="rect111"
-         width="70"
-         height="70"
-         x="72.008766"
-         y="73.45472"
-         inkscape:export-filename="rect111.png"
-         inkscape:export-xdpi="371.56567"
-         inkscape:export-ydpi="371.56567" />
-      <text
-         xml:space="preserve"
-         style="font-size:25.4px;fill:#dba359;fill-opacity:1;stroke-width:0.264583"
-         x="77.420464"
-         y="115.22258"
-         id="text2825"><tspan
-           sodipodi:role="line"
-           id="tspan2823"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25.4px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#dba359;fill-opacity:1;stroke-width:0.264583"
-           x="77.420464"
-           y="115.22258">IPTV</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#e2c379;fill-opacity:1;stroke-width:0.264583"
-         x="79.085327"
-         y="94.602959"
-         id="text4437"><tspan
-           sodipodi:role="line"
-           id="tspan4435"
-           style="font-size:7.05556px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.264583"
-           x="79.085327"
-           y="94.602959">NIDOCA</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.87778px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#f3f3f3;fill-opacity:1;stroke-width:0.264583"
-         x="113.65237"
-         y="125.17393"
-         id="text4543"><tspan
-           sodipodi:role="line"
-           id="tspan4541"
-           style="font-size:9.87778px;stroke-width:0.264583"
-           x="113.65237"
-           y="125.17393">PRO</tspan></text>
-    </g>
+    <rect
+       style="fill:#1a4277;fill-opacity:1;stroke-width:0.324652;image-rendering:optimizeQuality"
+       id="rect111"
+       width="70"
+       height="70"
+       x="67.670891"
+       y="25.159685"
+       inkscape:export-filename="logo.png"
+       inkscape:export-xdpi="185.78284"
+       inkscape:export-ydpi="185.78284" />
+    <text
+       xml:space="preserve"
+       style="font-size:21.1667px;fill:#dba359;fill-opacity:1;stroke-width:0.264583"
+       x="78.37426"
+       y="66.927544"
+       id="text2825"><tspan
+         sodipodi:role="line"
+         id="tspan2823"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.1667px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#dba359;fill-opacity:1;stroke-width:0.264583"
+         x="78.37426"
+         y="66.927544">IPTV</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#e2c379;fill-opacity:1;stroke-width:0.264583"
+       x="79.509956"
+       y="50.012035"
+       id="text4437"><tspan
+         sodipodi:role="line"
+         id="tspan4435"
+         style="font-size:4.93889px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.264583"
+         x="79.509956"
+         y="50.012035">NIDOCA</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.46667px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#f3f3f3;fill-opacity:1;stroke-width:0.264583"
+       x="108.10544"
+       y="75.55365"
+       id="text4543"><tspan
+         sodipodi:role="line"
+         id="tspan4541"
+         style="font-size:8.46667px;stroke-width:0.264583"
+         x="108.10544"
+         y="75.55365">PRO</tspan></text>
+    <rect
+       style="fill:#1a4277;fill-opacity:1;stroke-width:0.464758;image-rendering:optimizeQuality"
+       id="rect111-4"
+       width="143.45471"
+       height="70"
+       x="30.646544"
+       y="169.12021"
+       inkscape:export-filename="logo_1024x500.png"
+       inkscape:export-xdpi="181.30879"
+       inkscape:export-ydpi="181.30879" />
     <text
        xml:space="preserve"
        transform="scale(0.26458333)"
        id="text4701"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';white-space:pre;shape-inside:url(#rect4703);display:inline;fill:#dba359;fill-opacity:1" />
+    <text
+       xml:space="preserve"
+       style="font-size:29.6375px;fill:#dba359;fill-opacity:1;stroke-width:0.370468"
+       x="37.199188"
+       y="211.28917"
+       id="text2825-9"
+       transform="scale(1.0280885,0.97267891)"><tspan
+         sodipodi:role="line"
+         id="tspan2823-8"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:29.6375px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#dba359;fill-opacity:1;stroke-width:0.370468"
+         x="37.199188"
+         y="211.28917">IPTV</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.91541px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#e2c379;fill-opacity:1;stroke-width:0.370468"
+       x="38.789391"
+       y="187.60416"
+       id="text4437-7"
+       transform="scale(1.0280885,0.97267891)"><tspan
+         sodipodi:role="line"
+         id="tspan4435-8"
+         style="font-size:6.91541px;fill:#f3f3f3;fill-opacity:1;stroke-width:0.370468"
+         x="38.789391"
+         y="187.60416">NIDOCA</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.855px;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, ';fill:#f3f3f3;fill-opacity:1;stroke-width:0.370468"
+       x="137.76283"
+       y="239.41641"
+       id="text4543-6"
+       transform="scale(1.0280885,0.97267891)"><tspan
+         sodipodi:role="line"
+         id="tspan4541-3"
+         style="font-size:11.855px;stroke-width:0.370468"
+         x="137.76283"
+         y="239.41641">PRO</tspan></text>
   </g>
 </svg>
