@@ -1,8 +1,6 @@
 package de.nidoca.webview.iptv;
 
 
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.os.Bundle;
 
 import com.google.android.exoplayer2.ExoPlayer;
@@ -18,7 +16,6 @@ import com.google.android.exoplayer2.util.Util;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaLoadRequestData;
 import com.google.android.gms.cast.MediaMetadata;
-import com.google.android.gms.cast.MediaQueueItem;
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
@@ -28,7 +25,6 @@ import com.google.android.gms.tasks.Task;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.core.content.ContextCompat;
 import androidx.navigation.ui.AppBarConfiguration;
 
 import de.nidoca.webview.iptv.cache.NidocaPlayerCache;
@@ -38,12 +34,10 @@ import de.nidoca.webview.iptv.m3u.LoadM3U;
 
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -62,32 +56,12 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     private ExoPlayer exoPlayer = null;
     private CastPlayer castPlayer = null;
     private Player currentPlayer = null;
-    private StyledPlayerView playerView;
+    private StyledPlayerView exoPlayerView;
     private ViewGroup playerViewParent;
-
 
     // the Cast context
     private CastContext castContext;
     private MenuItem castButton;
-
-    // Player state params
-
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (Util.SDK_INT >= 24) {
-            initializePlayers();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (Util.SDK_INT < 24 || exoPlayer == null) {
-            initializePlayers();
-        }
-    }
 
     @Override
     protected void onPause() {
@@ -124,27 +98,27 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        playerView = binding.playerView;
-        playerViewParent = (ViewGroup) playerView.getParent();
-        playerView.setControllerAutoShow(false);
-
-        playerView.setFullscreenButtonClickListener(isFullScreen -> {
+        //exoPlayerView - start
+        exoPlayerView = binding.playerView;
+        playerViewParent = (ViewGroup) exoPlayerView.getParent();
+        exoPlayerView.setControllerAutoShow(false);
+        exoPlayerView.setFullscreenButtonClickListener(isFullScreen -> {
             if (isFullScreen) {
                 LinearLayout linearLayout = new LinearLayout(this);
                 linearLayout.setOrientation(LinearLayout.VERTICAL);
-                ((ViewGroup) playerView.getParent()).removeView(playerView);
-                linearLayout.addView(playerView);
+                ((ViewGroup) exoPlayerView.getParent()).removeView(exoPlayerView);
+                linearLayout.addView(exoPlayerView);
                 setContentView(linearLayout);
-                playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+                exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
             } else {
                 setContentView(binding.getRoot());
-                ((ViewGroup) playerView.getParent()).removeView(playerView);
-                playerViewParent.addView(playerView);
-
-
+                ((ViewGroup) exoPlayerView.getParent()).removeView(exoPlayerView);
+                playerViewParent.addView(exoPlayerView);
             }
         });
+        //exoPlayerView - end
 
+        //castPlayer - start
         CastContext
                 .getSharedInstance(this, Executors.newSingleThreadExecutor()).addOnCompleteListener(new OnCompleteListener<CastContext>() {
                     @Override
@@ -154,10 +128,33 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                         castPlayer.setSessionAvailabilityListener(MainActivity.this);
                     }
                 });
+        //castPlayer - end
 
+        //exoPlayer - start
+        //must init after CastContext
+        exoPlayer = new ExoPlayer.Builder(this).build();
+        exoPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onEvents(Player player, Player.Events events) {
+                Player.Listener.super.onEvents(player, events);
+                if (player.isPlaying() && !castPlayer.isCastSessionAvailable()) {
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                }
+            }
+        });
+        exoPlayerView.setPlayer(exoPlayer);
+        if (castPlayer != null && castPlayer.isCastSessionAvailable()) {
+            playOnPlayer(castPlayer);
+        } else {
+            playOnPlayer(exoPlayer);
+        }
+        //exoPlayer - end
 
+        //toolbar - start
         setSupportActionBar(binding.toolbar);
+        //toolbar - end
 
+        //listView - start
         ListView listView = binding.list;
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Entry entry = (Entry) parent.getItemAtPosition(position);
@@ -165,38 +162,9 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             NidocaPlayerCache.CURRENT_MEDIA_ITEM = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
             startPlayback();
         });
-
         new LoadM3U(this, listView).execute();
+        //listView - end
 
-
-    }
-
-    /**
-     * Prepares the local and remote players for playback.
-     */
-    private void initializePlayers() {
-
-        if (exoPlayer == null) {
-            exoPlayer = new ExoPlayer.Builder(this).build();
-            exoPlayer.addListener(new Player.Listener() {
-                @Override
-                public void onEvents(Player player, Player.Events events) {
-                    Player.Listener.super.onEvents(player, events);
-                    System.out.println(player.isPlaying());
-                    if (player.isPlaying() && !castPlayer.isCastSessionAvailable()) {
-                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    }
-                }
-            });
-            playerView.setPlayer(exoPlayer);
-        }
-
-
-        if (castPlayer != null && castPlayer.isCastSessionAvailable()) {
-            playOnPlayer(castPlayer);
-        } else {
-            playOnPlayer(exoPlayer);
-        }
 
     }
 
