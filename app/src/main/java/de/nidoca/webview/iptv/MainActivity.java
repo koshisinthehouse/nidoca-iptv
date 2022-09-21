@@ -7,15 +7,31 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.google.android.exoplayer2.DeviceInfo;
 import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.MediaItem;
 
+import com.google.android.exoplayer2.PlaybackException;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.Tracks;
+import com.google.android.exoplayer2.analytics.AnalyticsListener;
+import com.google.android.exoplayer2.audio.AudioAttributes;
+import com.google.android.exoplayer2.decoder.DecoderCounters;
+import com.google.android.exoplayer2.decoder.DecoderReuseEvaluation;
 import com.google.android.exoplayer2.ext.cast.CastPlayer;
 import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener;
+import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.source.LoadEventInfo;
+import com.google.android.exoplayer2.source.MediaLoadData;
+import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.text.CueGroup;
+import com.google.android.exoplayer2.trackselection.TrackSelectionParameters;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.exoplayer2.util.MimeTypes;
+import com.google.android.exoplayer2.video.VideoSize;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaLoadRequestData;
 import com.google.android.gms.cast.MediaMetadata;
@@ -35,6 +51,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.navigation.ui.AppBarConfiguration;
@@ -271,10 +288,420 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //must init after CastContext
         exoPlayer = new ExoPlayer.Builder(this).build();
         exoPlayer.setPlayWhenReady(true);
+        exoPlayer.addAnalyticsListener(new AnalyticsListener() {
+            @Override
+            public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
+                AnalyticsListener.super.onPlayerStateChanged(eventTime, playWhenReady, playbackState);
+            }
+
+            @Override
+            public void onPlaybackStateChanged(EventTime eventTime, int state) {
+                AnalyticsListener.super.onPlaybackStateChanged(eventTime, state);
+            }
+
+            @Override
+            public void onPlayWhenReadyChanged(EventTime eventTime, boolean playWhenReady, int reason) {
+                AnalyticsListener.super.onPlayWhenReadyChanged(eventTime, playWhenReady, reason);
+            }
+
+            @Override
+            public void onPlaybackSuppressionReasonChanged(EventTime eventTime, int playbackSuppressionReason) {
+                AnalyticsListener.super.onPlaybackSuppressionReasonChanged(eventTime, playbackSuppressionReason);
+            }
+
+            @Override
+            public void onIsPlayingChanged(EventTime eventTime, boolean isPlaying) {
+                AnalyticsListener.super.onIsPlayingChanged(eventTime, isPlaying);
+            }
+
+            @Override
+            public void onTimelineChanged(EventTime eventTime, int reason) {
+                AnalyticsListener.super.onTimelineChanged(eventTime, reason);
+            }
+
+            @Override
+            public void onMediaItemTransition(EventTime eventTime, @Nullable MediaItem mediaItem, int reason) {
+                AnalyticsListener.super.onMediaItemTransition(eventTime, mediaItem, reason);
+            }
+
+            @Override
+            public void onPositionDiscontinuity(EventTime eventTime, int reason) {
+                AnalyticsListener.super.onPositionDiscontinuity(eventTime, reason);
+            }
+
+            @Override
+            public void onPositionDiscontinuity(EventTime eventTime, Player.PositionInfo oldPosition, Player.PositionInfo newPosition, int reason) {
+                AnalyticsListener.super.onPositionDiscontinuity(eventTime, oldPosition, newPosition, reason);
+            }
+
+            @Override
+            public void onSeekStarted(EventTime eventTime) {
+                AnalyticsListener.super.onSeekStarted(eventTime);
+            }
+
+            @Override
+            public void onSeekProcessed(EventTime eventTime) {
+                AnalyticsListener.super.onSeekProcessed(eventTime);
+            }
+
+            @Override
+            public void onPlaybackParametersChanged(EventTime eventTime, PlaybackParameters playbackParameters) {
+                AnalyticsListener.super.onPlaybackParametersChanged(eventTime, playbackParameters);
+            }
+
+            @Override
+            public void onSeekBackIncrementChanged(EventTime eventTime, long seekBackIncrementMs) {
+                AnalyticsListener.super.onSeekBackIncrementChanged(eventTime, seekBackIncrementMs);
+            }
+
+            @Override
+            public void onSeekForwardIncrementChanged(EventTime eventTime, long seekForwardIncrementMs) {
+                AnalyticsListener.super.onSeekForwardIncrementChanged(eventTime, seekForwardIncrementMs);
+            }
+
+            @Override
+            public void onMaxSeekToPreviousPositionChanged(EventTime eventTime, long maxSeekToPreviousPositionMs) {
+                AnalyticsListener.super.onMaxSeekToPreviousPositionChanged(eventTime, maxSeekToPreviousPositionMs);
+            }
+
+            @Override
+            public void onRepeatModeChanged(EventTime eventTime, int repeatMode) {
+                AnalyticsListener.super.onRepeatModeChanged(eventTime, repeatMode);
+            }
+
+            @Override
+            public void onShuffleModeChanged(EventTime eventTime, boolean shuffleModeEnabled) {
+                AnalyticsListener.super.onShuffleModeChanged(eventTime, shuffleModeEnabled);
+            }
+
+            @Override
+            public void onIsLoadingChanged(EventTime eventTime, boolean isLoading) {
+                AnalyticsListener.super.onIsLoadingChanged(eventTime, isLoading);
+            }
+
+            @Override
+            public void onLoadingChanged(EventTime eventTime, boolean isLoading) {
+                AnalyticsListener.super.onLoadingChanged(eventTime, isLoading);
+            }
+
+            @Override
+            public void onAvailableCommandsChanged(EventTime eventTime, Player.Commands availableCommands) {
+                AnalyticsListener.super.onAvailableCommandsChanged(eventTime, availableCommands);
+            }
+
+            @Override
+            public void onPlayerError(EventTime eventTime, PlaybackException error) {
+                AnalyticsListener.super.onPlayerError(eventTime, error);
+            }
+
+            @Override
+            public void onPlayerErrorChanged(EventTime eventTime, @Nullable PlaybackException error) {
+                AnalyticsListener.super.onPlayerErrorChanged(eventTime, error);
+            }
+
+            @Override
+            public void onTracksChanged(EventTime eventTime, Tracks tracks) {
+                AnalyticsListener.super.onTracksChanged(eventTime, tracks);
+            }
+
+            @Override
+            public void onTrackSelectionParametersChanged(EventTime eventTime, TrackSelectionParameters trackSelectionParameters) {
+                AnalyticsListener.super.onTrackSelectionParametersChanged(eventTime, trackSelectionParameters);
+            }
+
+            @Override
+            public void onMediaMetadataChanged(EventTime eventTime, com.google.android.exoplayer2.MediaMetadata mediaMetadata) {
+                AnalyticsListener.super.onMediaMetadataChanged(eventTime, mediaMetadata);
+            }
+
+            @Override
+            public void onPlaylistMetadataChanged(EventTime eventTime, com.google.android.exoplayer2.MediaMetadata playlistMetadata) {
+                AnalyticsListener.super.onPlaylistMetadataChanged(eventTime, playlistMetadata);
+            }
+
+            @Override
+            public void onLoadStarted(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+                AnalyticsListener.super.onLoadStarted(eventTime, loadEventInfo, mediaLoadData);
+            }
+
+            @Override
+            public void onLoadCompleted(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+                AnalyticsListener.super.onLoadCompleted(eventTime, loadEventInfo, mediaLoadData);
+            }
+
+            @Override
+            public void onLoadCanceled(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+                AnalyticsListener.super.onLoadCanceled(eventTime, loadEventInfo, mediaLoadData);
+            }
+
+            @Override
+            public void onLoadError(EventTime eventTime, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
+                AnalyticsListener.super.onLoadError(eventTime, loadEventInfo, mediaLoadData, error, wasCanceled);
+            }
+
+            @Override
+            public void onDownstreamFormatChanged(EventTime eventTime, MediaLoadData mediaLoadData) {
+                AnalyticsListener.super.onDownstreamFormatChanged(eventTime, mediaLoadData);
+            }
+
+            @Override
+            public void onUpstreamDiscarded(EventTime eventTime, MediaLoadData mediaLoadData) {
+                AnalyticsListener.super.onUpstreamDiscarded(eventTime, mediaLoadData);
+            }
+
+            @Override
+            public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
+                AnalyticsListener.super.onBandwidthEstimate(eventTime, totalLoadTimeMs, totalBytesLoaded, bitrateEstimate);
+            }
+
+            @Override
+            public void onMetadata(EventTime eventTime, Metadata metadata) {
+                AnalyticsListener.super.onMetadata(eventTime, metadata);
+            }
+
+            @Override
+            public void onCues(EventTime eventTime, List<Cue> cues) {
+                AnalyticsListener.super.onCues(eventTime, cues);
+            }
+
+            @Override
+            public void onCues(EventTime eventTime, CueGroup cueGroup) {
+                AnalyticsListener.super.onCues(eventTime, cueGroup);
+            }
+
+            @Override
+            public void onDecoderEnabled(EventTime eventTime, int trackType, DecoderCounters decoderCounters) {
+                AnalyticsListener.super.onDecoderEnabled(eventTime, trackType, decoderCounters);
+            }
+
+            @Override
+            public void onDecoderInitialized(EventTime eventTime, int trackType, String decoderName, long initializationDurationMs) {
+                AnalyticsListener.super.onDecoderInitialized(eventTime, trackType, decoderName, initializationDurationMs);
+            }
+
+            @Override
+            public void onDecoderInputFormatChanged(EventTime eventTime, int trackType, Format format) {
+                AnalyticsListener.super.onDecoderInputFormatChanged(eventTime, trackType, format);
+            }
+
+            @Override
+            public void onDecoderDisabled(EventTime eventTime, int trackType, DecoderCounters decoderCounters) {
+                AnalyticsListener.super.onDecoderDisabled(eventTime, trackType, decoderCounters);
+            }
+
+            @Override
+            public void onAudioEnabled(EventTime eventTime, DecoderCounters decoderCounters) {
+                AnalyticsListener.super.onAudioEnabled(eventTime, decoderCounters);
+            }
+
+            @Override
+            public void onAudioDecoderInitialized(EventTime eventTime, String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+                AnalyticsListener.super.onAudioDecoderInitialized(eventTime, decoderName, initializedTimestampMs, initializationDurationMs);
+            }
+
+            @Override
+            public void onAudioDecoderInitialized(EventTime eventTime, String decoderName, long initializationDurationMs) {
+                AnalyticsListener.super.onAudioDecoderInitialized(eventTime, decoderName, initializationDurationMs);
+            }
+
+            @Override
+            public void onAudioInputFormatChanged(EventTime eventTime, Format format) {
+                AnalyticsListener.super.onAudioInputFormatChanged(eventTime, format);
+            }
+
+            @Override
+            public void onAudioInputFormatChanged(EventTime eventTime, Format format, @Nullable DecoderReuseEvaluation decoderReuseEvaluation) {
+                AnalyticsListener.super.onAudioInputFormatChanged(eventTime, format, decoderReuseEvaluation);
+            }
+
+            @Override
+            public void onAudioPositionAdvancing(EventTime eventTime, long playoutStartSystemTimeMs) {
+                AnalyticsListener.super.onAudioPositionAdvancing(eventTime, playoutStartSystemTimeMs);
+            }
+
+            @Override
+            public void onAudioUnderrun(EventTime eventTime, int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+                AnalyticsListener.super.onAudioUnderrun(eventTime, bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
+            }
+
+            @Override
+            public void onAudioDecoderReleased(EventTime eventTime, String decoderName) {
+                AnalyticsListener.super.onAudioDecoderReleased(eventTime, decoderName);
+            }
+
+            @Override
+            public void onAudioDisabled(EventTime eventTime, DecoderCounters decoderCounters) {
+                AnalyticsListener.super.onAudioDisabled(eventTime, decoderCounters);
+            }
+
+            @Override
+            public void onAudioSessionIdChanged(EventTime eventTime, int audioSessionId) {
+                AnalyticsListener.super.onAudioSessionIdChanged(eventTime, audioSessionId);
+            }
+
+            @Override
+            public void onAudioAttributesChanged(EventTime eventTime, AudioAttributes audioAttributes) {
+                AnalyticsListener.super.onAudioAttributesChanged(eventTime, audioAttributes);
+            }
+
+            @Override
+            public void onSkipSilenceEnabledChanged(EventTime eventTime, boolean skipSilenceEnabled) {
+                AnalyticsListener.super.onSkipSilenceEnabledChanged(eventTime, skipSilenceEnabled);
+            }
+
+            @Override
+            public void onAudioSinkError(EventTime eventTime, Exception audioSinkError) {
+                AnalyticsListener.super.onAudioSinkError(eventTime, audioSinkError);
+            }
+
+            @Override
+            public void onAudioCodecError(EventTime eventTime, Exception audioCodecError) {
+                AnalyticsListener.super.onAudioCodecError(eventTime, audioCodecError);
+            }
+
+            @Override
+            public void onVolumeChanged(EventTime eventTime, float volume) {
+                AnalyticsListener.super.onVolumeChanged(eventTime, volume);
+            }
+
+            @Override
+            public void onDeviceInfoChanged(EventTime eventTime, DeviceInfo deviceInfo) {
+                AnalyticsListener.super.onDeviceInfoChanged(eventTime, deviceInfo);
+            }
+
+            @Override
+            public void onDeviceVolumeChanged(EventTime eventTime, int volume, boolean muted) {
+                AnalyticsListener.super.onDeviceVolumeChanged(eventTime, volume, muted);
+            }
+
+            @Override
+            public void onVideoEnabled(EventTime eventTime, DecoderCounters decoderCounters) {
+                AnalyticsListener.super.onVideoEnabled(eventTime, decoderCounters);
+            }
+
+            @Override
+            public void onVideoDecoderInitialized(EventTime eventTime, String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+                AnalyticsListener.super.onVideoDecoderInitialized(eventTime, decoderName, initializedTimestampMs, initializationDurationMs);
+            }
+
+            @Override
+            public void onVideoDecoderInitialized(EventTime eventTime, String decoderName, long initializationDurationMs) {
+                AnalyticsListener.super.onVideoDecoderInitialized(eventTime, decoderName, initializationDurationMs);
+            }
+
+            @Override
+            public void onVideoInputFormatChanged(EventTime eventTime, Format format) {
+                AnalyticsListener.super.onVideoInputFormatChanged(eventTime, format);
+            }
+
+            @Override
+            public void onVideoInputFormatChanged(EventTime eventTime, Format format, @Nullable DecoderReuseEvaluation decoderReuseEvaluation) {
+                AnalyticsListener.super.onVideoInputFormatChanged(eventTime, format, decoderReuseEvaluation);
+            }
+
+            @Override
+            public void onDroppedVideoFrames(EventTime eventTime, int droppedFrames, long elapsedMs) {
+                AnalyticsListener.super.onDroppedVideoFrames(eventTime, droppedFrames, elapsedMs);
+            }
+
+            @Override
+            public void onVideoDecoderReleased(EventTime eventTime, String decoderName) {
+                AnalyticsListener.super.onVideoDecoderReleased(eventTime, decoderName);
+            }
+
+            @Override
+            public void onVideoDisabled(EventTime eventTime, DecoderCounters decoderCounters) {
+                AnalyticsListener.super.onVideoDisabled(eventTime, decoderCounters);
+            }
+
+            @Override
+            public void onVideoFrameProcessingOffset(EventTime eventTime, long totalProcessingOffsetUs, int frameCount) {
+                AnalyticsListener.super.onVideoFrameProcessingOffset(eventTime, totalProcessingOffsetUs, frameCount);
+            }
+
+            @Override
+            public void onVideoCodecError(EventTime eventTime, Exception videoCodecError) {
+                AnalyticsListener.super.onVideoCodecError(eventTime, videoCodecError);
+            }
+
+            @Override
+            public void onRenderedFirstFrame(EventTime eventTime, Object output, long renderTimeMs) {
+                AnalyticsListener.super.onRenderedFirstFrame(eventTime, output, renderTimeMs);
+            }
+
+            @Override
+            public void onVideoSizeChanged(EventTime eventTime, VideoSize videoSize) {
+                AnalyticsListener.super.onVideoSizeChanged(eventTime, videoSize);
+            }
+
+            @Override
+            public void onVideoSizeChanged(EventTime eventTime, int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+                AnalyticsListener.super.onVideoSizeChanged(eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
+            }
+
+            @Override
+            public void onSurfaceSizeChanged(EventTime eventTime, int width, int height) {
+                AnalyticsListener.super.onSurfaceSizeChanged(eventTime, width, height);
+            }
+
+            @Override
+            public void onDrmSessionAcquired(EventTime eventTime) {
+                AnalyticsListener.super.onDrmSessionAcquired(eventTime);
+            }
+
+            @Override
+            public void onDrmSessionAcquired(EventTime eventTime, int state) {
+                AnalyticsListener.super.onDrmSessionAcquired(eventTime, state);
+            }
+
+            @Override
+            public void onDrmKeysLoaded(EventTime eventTime) {
+                AnalyticsListener.super.onDrmKeysLoaded(eventTime);
+            }
+
+            @Override
+            public void onDrmSessionManagerError(EventTime eventTime, Exception error) {
+                AnalyticsListener.super.onDrmSessionManagerError(eventTime, error);
+            }
+
+            @Override
+            public void onDrmKeysRestored(EventTime eventTime) {
+                AnalyticsListener.super.onDrmKeysRestored(eventTime);
+            }
+
+            @Override
+            public void onDrmKeysRemoved(EventTime eventTime) {
+                AnalyticsListener.super.onDrmKeysRemoved(eventTime);
+            }
+
+            @Override
+            public void onDrmSessionReleased(EventTime eventTime) {
+                AnalyticsListener.super.onDrmSessionReleased(eventTime);
+            }
+
+            @Override
+            public void onPlayerReleased(EventTime eventTime) {
+                AnalyticsListener.super.onPlayerReleased(eventTime);
+            }
+
+            @Override
+            public void onEvents(Player player, Events events) {
+                AnalyticsListener.super.onEvents(player, events);
+
+            }
+        });
+        //exoPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
         exoPlayer.addListener(new Player.Listener() {
             @Override
             public void onEvents(Player player, Player.Events events) {
                 Player.Listener.super.onEvents(player, events);
+
+                String a = "";
+                int size = events.size();
+                for(int i =0;i<size;i++){
+                   a="-----------           " + events.get(i);
+                }
+                System.err.println(events.toString());
                 if (player.isPlaying() && !castPlayer.isCastSessionAvailable()) {
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 }
@@ -313,7 +740,9 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         }
 
         if (this.currentPlayer != null) {
-            newPlayer.seekTo(this.currentPlayer.getCurrentMediaItemIndex(), this.currentPlayer.getCurrentPosition());
+            long currentPosition = this.currentPlayer.getCurrentPosition();
+            System.out.println("current position: " + currentPosition);
+            newPlayer.seekTo(this.currentPlayer.getCurrentMediaItemIndex(), currentPosition);
             currentPlayer.stop();
         }
 
@@ -361,7 +790,12 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             }
 
 
-            MediaInfo mediaInfo = new MediaInfo.Builder(this.mediaItem.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_LIVE).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(exoPlayer.getDuration() * 1000).setMetadata(metadata).build();
+            long duration = exoPlayer.getDuration();
+            System.out.println("duration exoplayer: " + duration);
+            long durationCast = castPlayer.getDuration();
+            System.out.println("duration cast: " + durationCast);
+            MediaInfo mediaInfo = new MediaInfo.Builder(this.mediaItem.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_LIVE).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(durationCast * 1000).setMetadata(metadata).build();
+
 
             RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
             remoteMediaClient.load(new MediaLoadRequestData.Builder().setCustomData(jsonObject).setMediaInfo(mediaInfo).build());
