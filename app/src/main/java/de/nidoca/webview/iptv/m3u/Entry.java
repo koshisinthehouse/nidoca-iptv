@@ -97,7 +97,7 @@ public class Entry {
         return channelName;
     }
 
-    /**
+
     @Override
     public String toString() {
         return "Entry{" +
@@ -112,12 +112,7 @@ public class Entry {
                 ", channelName='" + channelName + '\'' +
                 '}';
     }
-    */
 
-    @Override
-    public String toString() {
-        return tvgId;
-    }
 
     public static class Builder {
         private String duration;

@@ -1,9 +1,14 @@
 package de.nidoca.webview.iptv;
 
 
+import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA;
+
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -12,27 +17,41 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.MediaItem;
 
+import com.google.android.exoplayer2.MediaItem.DrmConfiguration;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SeekParameters;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.Tracks;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.decoder.DecoderReuseEvaluation;
+import com.google.android.exoplayer2.drm.DrmSessionEventListener;
 import com.google.android.exoplayer2.ext.cast.CastPlayer;
 import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener;
 import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.offline.StreamKey;
+import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.source.LoadEventInfo;
 import com.google.android.exoplayer2.source.MediaLoadData;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MediaSourceEventListener;
+import com.google.android.exoplayer2.source.hls.HlsManifest;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.CueGroup;
 import com.google.android.exoplayer2.trackselection.TrackSelectionParameters;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.video.VideoSize;
 import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaLoadOptions;
 import com.google.android.gms.cast.MediaLoadRequestData;
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.framework.CastButtonFactory;
@@ -54,21 +73,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.appcompat.widget.SearchView;
+import androidx.core.content.ContextCompat;
 import androidx.navigation.ui.AppBarConfiguration;
 
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 import de.nidoca.webview.iptv.m3u.Entry;
+import de.nidoca.webview.iptv.m3u.LoadImage;
 import de.nidoca.webview.iptv.m3u.LoadM3U;
 import de.nidoca.webview.iptv.m3u.Parser;
 
+import android.os.Handler;
+import android.provider.MediaStore;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -81,7 +108,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 
 
@@ -112,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
     private ActivityMainBinding binding;
 
-    private MediaItem mediaItem;
+    private Entry entry;
 
     private ListView listView;
 
@@ -196,9 +227,35 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         }
         Parser parser = new Parser();
         List<Entry> entries = parser.parse(fileInputStream);
+
+
         ArrayAdapter<Entry> adapter = new ArrayAdapter<Entry>(MainActivity.this,
                 android.R.layout.simple_list_item_1,
-                entries);
+                entries) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                // Get the data item for this position
+                Entry entry = getItem(position);
+                // Check if an existing view is being reused, otherwise inflate the view
+                if (convertView == null) {
+                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_view_item, parent, false);
+                }
+                // Lookup view for data population
+                TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
+                TextView tvHome = (TextView) convertView.findViewById(R.id.tvHome);
+                // Populate the data into the template view using the data object
+                tvName.setText(entry.getTvgId());
+                tvHome.setText(entry.getChannelName());
+                // Return the completed view to render on screen
+
+                String tvgLogoUrl = entry.getTvgLogo();
+                new LoadImage((ImageView) convertView.findViewById(R.id.imageView)).execute(tvgLogoUrl);
+
+                return convertView;
+            }
+        };
+
+
         listView.setAdapter(adapter);
     }
 
@@ -267,8 +324,9 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //exoPlayerView - end
 
         //castPlayer - start
+        //Executors.newSingleThreadExecutor()
         CastContext
-                .getSharedInstance(getApplicationContext(), Executors.newSingleThreadExecutor()).addOnCompleteListener(new OnCompleteListener<CastContext>() {
+                .getSharedInstance(getApplicationContext(), ContextCompat.getMainExecutor(this)).addOnCompleteListener(new OnCompleteListener<CastContext>() {
                     @Override
                     public void onComplete(@NonNull Task<CastContext> task) {
                         castContext = task.getResult();
@@ -317,6 +375,17 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             @Override
             public void onTimelineChanged(EventTime eventTime, int reason) {
                 AnalyticsListener.super.onTimelineChanged(eventTime, reason);
+
+
+                Object manifest = exoPlayer.getCurrentManifest();
+                if (manifest != null) {
+                    HlsManifest hlsManifest = (HlsManifest) manifest;
+                    long a = hlsManifest.mediaPlaylist.getEndTimeUs();
+                    System.out.println(a);
+                    // Do something with the manifest.
+                }
+                ;
+
             }
 
             @Override
@@ -698,8 +767,8 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
                 String a = "";
                 int size = events.size();
-                for(int i =0;i<size;i++){
-                   a="-----------           " + events.get(i);
+                for (int i = 0; i < size; i++) {
+                    a = "-----------           " + events.get(i);
                 }
                 System.err.println(events.toString());
                 if (player.isPlaying() && !castPlayer.isCastSessionAvailable()) {
@@ -723,8 +792,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         listView = binding.list;
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Entry entry = (Entry) parent.getItemAtPosition(position);
-            com.google.android.exoplayer2.MediaMetadata mediaMetadata = new com.google.android.exoplayer2.MediaMetadata.Builder().setTitle(entry.getTvgName()).setSubtitle(entry.getTvgId()).setStation(entry.getChannelName()).build();
-            this.mediaItem = new MediaItem.Builder().setUri(entry.getChannelUri()).setMediaMetadata(mediaMetadata).setTag(null).build();
+            this.entry = entry;
             startPlayback();
         });
         initStations();
@@ -761,44 +829,89 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
      */
     private void startPlayback() {
 
-        if (this.mediaItem == null) {
+        if (this.entry == null) {
             return;
 
         }
 
+        String tvgId = entry.getTvgId();
+        String tvgName = entry.getTvgName();
+        String channelName = entry.getChannelName();
+        String channelUrl = entry.getChannelUri();
+        Uri channelUri = Uri.parse(channelUrl);
+        String mimeType = MimeTypes.APPLICATION_M3U8;
+        if (!channelUrl.endsWith("m3u8")) {
+            //https://github.com/google/ExoPlayer/issues/90
+            mimeType = MimeTypes.VIDEO_MP2T;
+        }
+
+        System.err.println(entry);
+
         if (currentPlayer == exoPlayer) {
-            exoPlayer.setMediaItem(this.mediaItem);
+            MediaItem.Builder mediaItemBuilder = new MediaItem.Builder();
+            mediaItemBuilder.setUri(channelUrl);
+            mediaItemBuilder.setMimeType(mimeType);
+            mediaItemBuilder.setClippingConfiguration(
+                    new MediaItem.ClippingConfiguration.Builder()
+                            .setStartPositionMs(0l)
+                            .setEndPositionMs(20000000000000l)
+                            .build());
+
+            new MediaItem.SubtitleConfiguration.Builder(channelUri)
+                    .setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                    .setLabel(channelName)
+                    .build();
+
+            MediaItem mediaItem = mediaItemBuilder.build();
+            DefaultMediaSourceFactory defaultMediaSourceFactory = new DefaultMediaSourceFactory(this);
+            MediaSource mediaSource = defaultMediaSourceFactory.createMediaSource(mediaItem);
+
+            mediaSource.addEventListener(new Handler() {
+            }, new MediaSourceEventListener() {
+                @Override
+                public void onLoadCompleted(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+                    MediaSourceEventListener.super.onLoadCompleted(windowIndex, mediaPeriodId, loadEventInfo, new MediaLoadData(DATA_TYPE_MEDIA));
+                    System.out.println(mediaLoadData.mediaEndTimeMs);
+                }
+            });
+            mediaSource.addDrmEventListener(new Handler(), new DrmSessionEventListener() {
+                @Override
+                public void onDrmSessionAcquired(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, int state) {
+                    DrmSessionEventListener.super.onDrmSessionAcquired(windowIndex, mediaPeriodId, state);
+                }
+            });
+            exoPlayer.setMediaSource(mediaSource);
+
             exoPlayer.prepare();
         }
 
         if (castPlayer == currentPlayer) {
-
             MediaMetadata metadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
-            com.google.android.exoplayer2.MediaMetadata mediaMetadata = this.mediaItem.mediaMetadata;
-            metadata.putString(MediaMetadata.KEY_TITLE, mediaMetadata.displayTitle != null ? mediaMetadata.displayTitle.toString() : "");
-            metadata.putString(MediaMetadata.KEY_SUBTITLE, mediaMetadata.subtitle != null ? mediaMetadata.subtitle.toString() : "");
-
+            metadata.putString(MediaMetadata.KEY_TITLE, tvgId);
+            metadata.putString(MediaMetadata.KEY_SUBTITLE, tvgName);
             //metadata.addImage(WebImage(Uri.parse("any-image-url")));
+
+            MediaInfo.Builder mediaInfoBuilder = new MediaInfo.Builder(channelUrl);
+            mediaInfoBuilder.setStreamType(MediaInfo.STREAM_TYPE_LIVE);
+            mediaInfoBuilder.setContentType(mimeType);
+            mediaInfoBuilder.setStreamDuration(castPlayer.getDuration() * 1000);
+            mediaInfoBuilder.setMetadata(metadata);
+            MediaInfo mediaInfo = mediaInfoBuilder.build();
+
+            RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
+            MediaLoadOptions.Builder mediaLoadOptions = new MediaLoadOptions.Builder();
             JSONObject jsonObject = new JSONObject();
+            //https://github.com/google/ExoPlayer/issues/10591
             try {
                 JSONObject mediaItem = new JSONObject();
-                mediaItem.put("uri", this.mediaItem.localConfiguration.uri.toString());
-                mediaItem.put("mediaId", this.mediaItem.mediaId);
+                mediaItem.put("uri", channelUrl);
+                mediaItem.put("mediaId", tvgId);
                 jsonObject.put("mediaItem", mediaItem);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
-
-            long duration = exoPlayer.getDuration();
-            System.out.println("duration exoplayer: " + duration);
-            long durationCast = castPlayer.getDuration();
-            System.out.println("duration cast: " + durationCast);
-            MediaInfo mediaInfo = new MediaInfo.Builder(this.mediaItem.localConfiguration.uri.toString()).setStreamType(MediaInfo.STREAM_TYPE_LIVE).setCustomData(jsonObject).setContentType(MimeTypes.APPLICATION_M3U8).setStreamDuration(durationCast * 1000).setMetadata(metadata).build();
-
-
-            RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
-            remoteMediaClient.load(new MediaLoadRequestData.Builder().setCustomData(jsonObject).setMediaInfo(mediaInfo).build());
+            mediaLoadOptions.setCustomData(jsonObject);
+            remoteMediaClient.load(mediaInfo, mediaLoadOptions.build());
 
         }
     }
@@ -807,6 +920,33 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         castMenuItem = CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), menu, R.id.media_route_menu_item);
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.menu_m3u_url_input).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+        /*Code for changing the search icon */
+        ImageView searchIcon = (ImageView)searchView.findViewById(androidx.appcompat.R.id.search_button);
+        searchIcon.setImageResource(R.drawable.ic_baseline_playlist_add_24);
+
+        /*Code for changing the voice search icon */
+        //ImageView voiceIcon = (ImageView)my_search_view.findViewById(android.support.v7.appcompat.R.id.search_voice_btn);
+        //voiceIcon.setImageResource(R.drawable.my_voice_search_icon);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //TODO write your code what you want to perform on search
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String query) {
+                //TODO write your code what you want to perform on search text change
+                return true;
+            }
+        });
+
         return true;
     }
 
@@ -815,7 +955,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         int id = item.getItemId();
         if (id == R.id.action_upload) {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("file/*");
+            intent.setType("*/*");
             mStartForResult.launch(intent);
             return true;
         }

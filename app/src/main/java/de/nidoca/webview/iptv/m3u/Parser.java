@@ -45,7 +45,7 @@ public class Parser {
             BufferedReader buffer = new BufferedReader(new InputStreamReader(stream));
             line = buffer.readLine();
             if(line == null) {
-                throw new ParsingException(0, "Empty stream");
+                return entries;
             }
             lineNbr++;
             checkStart(line);

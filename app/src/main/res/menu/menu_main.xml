@@ -2,6 +2,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="de.nidoca.webview.iptv.MainActivity">
+
+
+    <item
+        android:id="@+id/menu_m3u_url_input"
+        android:title="@string/m3u_url_input"
+        android:icon="@drawable/ic_baseline_playlist_add_24"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always" />
+
     <item
         android:id="@+id/action_upload"
         android:title="@string/action_settings"
@@ -13,5 +22,11 @@
         app:showAsAction="always"
         android:icon="@drawable/ic_baseline_cast_24"
         app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"/>
+
+    <item
+        android:id="@+id/action_info"
+        android:title="@string/action_settings"
+        android:icon="@drawable/ic_baseline_info_24"
+        app:showAsAction="always" />
 
 </menu>
