@@ -13,3 +13,6 @@ iptv player for android
     [System.Environment]::SetEnvironmentVariable("RELEASE_KEY_ALIAS", "<value>", "User")
     [System.Environment]::SetEnvironmentVariable("RELEASE_STORE_PASSWORD", "<value>", "User")
     [System.Environment]::SetEnvironmentVariable("RELEASE_KEY_PASSWORD", "<value>", "User")
+
+
+./gradlew :app:bundleDebug
