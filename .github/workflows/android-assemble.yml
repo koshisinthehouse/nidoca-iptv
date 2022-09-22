@@ -27,3 +27,8 @@ jobs:
         RELEASE_STORE_PASSWORD: ${{secrets.RELEASE_STORE_PASSWORD}}
         RELEASE_KEY_PASSWORD: ${{secrets.RELEASE_KEY_PASSWORD}}
       run: ./gradlew assemble
+      uses: JamesIves/github-pages-deploy-action@v4
+          with:
+            branch: apk
+            folder: app/build/outputs/apk
+            target-folder:
