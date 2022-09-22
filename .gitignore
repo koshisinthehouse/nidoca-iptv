@@ -1,4 +1,4 @@
-# Built application files
+.env
 *.apk
 *.aar
 *.ap_
