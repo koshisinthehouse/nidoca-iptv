@@ -5,10 +5,9 @@
 
 
     <item
-        android:id="@+id/menu_m3u_url_input"
+        android:id="@+id/action_url_input"
         android:title="@string/m3u_url_input"
         android:icon="@drawable/ic_baseline_playlist_add_24"
-        app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="always" />
 
     <item
