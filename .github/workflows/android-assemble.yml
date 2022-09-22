@@ -26,7 +26,7 @@ jobs:
         RELEASE_KEY_ALIAS: ${{secrets.RELEASE_KEY_ALIAS}}
         RELEASE_STORE_PASSWORD: ${{secrets.RELEASE_STORE_PASSWORD}}
         RELEASE_KEY_PASSWORD: ${{secrets.RELEASE_KEY_PASSWORD}}
-      run: ./gradlew assemble
+      run: ./gradlew :app:bundleRelease
     - uses: JamesIves/github-pages-deploy-action@v4
       with:
         branch: apk
