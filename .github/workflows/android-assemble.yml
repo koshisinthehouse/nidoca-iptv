@@ -23,5 +23,7 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       env:
+        RELEASE_KEY_ALIAS: ${{secrets.RELEASE_KEY_ALIAS}}
         RELEASE_STORE_PASSWORD: ${{secrets.RELEASE_STORE_PASSWORD}}
+        RELEASE_KEY_PASSWORD: ${{secrets.RELEASE_KEY_PASSWORD}}
       run: ./gradlew assemble
