@@ -16,3 +16,4 @@ iptv player for android
 
 
 ./gradlew :app:bundleDebug
+./gradlew :app:bundleRelease
