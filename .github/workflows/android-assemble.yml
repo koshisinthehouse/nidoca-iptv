@@ -26,4 +26,5 @@ jobs:
         RELEASE_KEY_ALIAS: ${{secrets.RELEASE_KEY_ALIAS}}
         RELEASE_STORE_PASSWORD: ${{secrets.RELEASE_STORE_PASSWORD}}
         RELEASE_KEY_PASSWORD: ${{secrets.RELEASE_KEY_PASSWORD}}
+      run: echo "huhuhu${{secrets.RELEASE_KEY_ALIAS}}"
       run: ./gradlew assemble
