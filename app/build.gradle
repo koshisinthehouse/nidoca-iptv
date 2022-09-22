@@ -20,10 +20,10 @@ android {
         release {
             // You need to specify either an absolute path or include the
             // keystore file in the same directory as the build.gradle file.
-            storeFile file("my-release-key.jks")
-            storePassword "password"
-            keyAlias "my-alias"
-            keyPassword "password"
+            storeFile file("release-key.keystore")
+            keyAlias env["RELEASE_KEY_ALIAS"]
+            storePassword env["RELEASE_STORE_PASSWORD"]
+            keyPassword env["RELEASE_KEY_PASSWORD"]
         }
     }
 
