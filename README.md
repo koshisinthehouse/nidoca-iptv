@@ -9,9 +9,6 @@ https://koshisinthehouse.github.io/nidoca-iptv/apk/debug/app-debug.apk
 ## release apk
 https://koshisinthehouse.github.io/nidoca-iptv/apk/release/app-release.apk
 
-## release aab
-https://koshisinthehouse.github.io/nidoca-iptv/bundle/debug/app-debug.aab
-
 ## release aab 
 https://koshisinthehouse.github.io/nidoca-iptv/bundle/release/app-release.aab
 
