@@ -82,6 +82,7 @@ import de.nidoca.webview.iptv.m3u.Entry;
 import de.nidoca.webview.iptv.m3u.LoadImage;
 import de.nidoca.webview.iptv.m3u.LoadM3U;
 import de.nidoca.webview.iptv.m3u.Parser;
+import de.nidoca.webview.iptv.view.StationArrayAdapter;
 
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -227,36 +228,11 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         }
         Parser parser = new Parser();
         List<Entry> entries = parser.parse(fileInputStream);
-
-
-        ArrayAdapter<Entry> adapter = new ArrayAdapter<Entry>(MainActivity.this,
+        ArrayAdapter<Entry> adapter = new StationArrayAdapter(MainActivity.this,
                 android.R.layout.simple_list_item_1,
-                entries) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                // Get the data item for this position
-                Entry entry = getItem(position);
-                // Check if an existing view is being reused, otherwise inflate the view
-                if (convertView == null) {
-                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_view_item, parent, false);
-                }
-                // Lookup view for data population
-                TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
-                TextView tvHome = (TextView) convertView.findViewById(R.id.tvHome);
-                // Populate the data into the template view using the data object
-                tvName.setText(entry.getTvgId());
-                tvHome.setText(entry.getChannelName());
-                // Return the completed view to render on screen
-
-                String tvgLogoUrl = entry.getTvgLogo();
-                new LoadImage((ImageView) convertView.findViewById(R.id.imageView)).execute(tvgLogoUrl);
-
-                return convertView;
-            }
-        };
-
-
+                entries);
         listView.setAdapter(adapter);
+
     }
 
     @Override
@@ -925,7 +901,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
         /*Code for changing the search icon */
-        ImageView searchIcon = (ImageView)searchView.findViewById(androidx.appcompat.R.id.search_button);
+        ImageView searchIcon = (ImageView) searchView.findViewById(androidx.appcompat.R.id.search_button);
         searchIcon.setImageResource(R.drawable.ic_baseline_playlist_add_24);
 
         /*Code for changing the voice search icon */
@@ -937,6 +913,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             @Override
             public boolean onQueryTextSubmit(String query) {
                 //TODO write your code what you want to perform on search
+                //TODO: new LoadM3U(this.);
                 return true;
             }
 
