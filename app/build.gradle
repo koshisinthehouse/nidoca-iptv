@@ -10,6 +10,7 @@ android {
     def proc = 'git rev-list HEAD --count'.execute()
     proc.consumeProcessOutput(commitCountOut, commitCountError)
     proc.waitForOrKill(1000)
+    println "aaaaaaaaaa: ${commitCountOut} ${commitCountError}"
      
     def commitCountOutAsInt = commitCountOut.toString().toInteger()
     def vName = "version 1.${commitCountOutAsInt}"
