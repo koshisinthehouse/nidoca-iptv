@@ -6,20 +6,15 @@ android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
  
-    def code = 0;
-    try {
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'rev-list', '--first-parent', '--count', 'origin/main'
-            standardOutput = stdout
-        }
-        code = Integer.parseInt(stdout.toString().trim())
-    }
-    catch (ignored) {
-        return -1;
-    }
-     
+    def proc = 'git rev-list --first-parent --count origin/main'.execute()
+    proc.consumeProcessOutput(commitCountOut, commitCountError)
+    proc.waitForOrKill(1000)
+    println "aaaaaaaaaa: ${commitCountOut} ${commitCountError}"
+
+    def code = commitCountOut.toString().toInteger()
     def vName = "version 1.${code}"
+    
+
     
     println "build new version, name: ${vName}"
     
