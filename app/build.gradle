@@ -6,14 +6,14 @@ android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
  
-    def commitCountOut = new StringBuilder(), commitCountError = new StringBuilder()
-    def proc = 'git rev-list HEAD --count'.execute()
-    proc.consumeProcessOutput(commitCountOut, commitCountError)
-    proc.waitForOrKill(1000)
-    println "aaaaaaaaaa: ${commitCountOut} ${commitCountError}"
+ 
+    def Properties versionProps = new Properties()
+    versionProps.load(new FileInputStream(versionPropsFile))
+    def code = versionProps['VERSION_CODE'].toInteger() + 1
+    versionProps['VERSION_CODE']=code.toString()
+    versionProps.store(versionPropsFile.newWriter(), null)
      
-    def commitCountOutAsInt = commitCountOut.toString().toInteger()
-    def vName = "version 1.${commitCountOutAsInt}"
+    def vName = "version 1.${code}"
     
     println "build new version, name: ${vName}"
     
@@ -21,7 +21,7 @@ android {
         applicationId "de.nidoca.webview.iptv"
         minSdk 26
         targetSdk 33
-        versionCode commitCountOutAsInt
+        versionCode code
         versionName vName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
