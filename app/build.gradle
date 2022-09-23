@@ -6,7 +6,13 @@ android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
  
-    def versionCode = "git rev-list HEAD --count".execute()
+ def sout = new StringBuilder(), serr = new StringBuilder()
+def proc = 'git rev-list HEAD --count'.execute()
+proc.consumeProcessOutput(sout, serr)
+proc.waitForOrKill(1000)
+println "out> $sout\nerr> $serr"
+ 
+    
     def majorVersion = 1
     
     defaultConfig {
