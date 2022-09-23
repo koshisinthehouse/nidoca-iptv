@@ -7,8 +7,7 @@ android {
     compileSdk 33
 
     def versionCode = "git rev-list HEAD --count".execute().text.trim() //unix
-    if(versionCode.empty) versionCode = "PowerShell -Command git rev-list HEAD --count".execute().text.trim() //windows
-    if(versionCode.empty) throw new RuntimeException("could not generate versioncode on this platform? cmd output: ${versionCode.text}")
+    println versionCode
     def majorVersion = 1
     
     defaultConfig {
