@@ -5,17 +5,13 @@ plugins {
 android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
-
-    def versionCode = 1
-
-    def majorVersion = 1
     
     defaultConfig {
         applicationId "de.nidoca.webview.iptv"
         minSdk 26
         targetSdk 33
-        versionCode versionCode
-        versionName "${majorVersion}.${versionCode}"
+        versionCode 1
+        versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
