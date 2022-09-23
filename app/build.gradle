@@ -6,21 +6,19 @@ android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
  
- def commitCountOut = new StringBuilder(), commitCountError = new StringBuilder()
-def proc = 'git rev-list HEAD --count'.execute()
-proc.consumeProcessOutput(commitCountOut, commitCountError)
-proc.waitForOrKill(1000)
- 
-    
-    def minorVersion = commitCountOut
+    def commitCountOut = new StringBuilder(), commitCountError = new StringBuilder()
+    def proc = 'git rev-list HEAD --count'.execute()
+    proc.consumeProcessOutput(commitCountOut, commitCountError)
+    proc.waitForOrKill(1000)
+     
     def majorVersion = 1
     
     defaultConfig {
         applicationId "de.nidoca.webview.iptv"
         minSdk 26
         targetSdk 33
-        versionCode 1
-        versionName "1.1"
+        versionCode commitCountOut
+        versionName "1.${commitCountOut}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
