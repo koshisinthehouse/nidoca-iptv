@@ -11,7 +11,7 @@ android {
     proc.consumeProcessOutput(commitCountOut, commitCountError)
     proc.waitForOrKill(1000)
      
-    def miVersion = commitCountOut
+    def miVersion = commitCountOut as int
     def vName = "version 1."
     
     defaultConfig {
