@@ -17,7 +17,7 @@ android {
         applicationId "de.nidoca.webview.iptv"
         minSdk 26
         targetSdk 33
-        versionCode commitCountOut
+        versionCode 1
         versionName "1.${commitCountOut}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
