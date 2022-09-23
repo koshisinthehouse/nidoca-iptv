@@ -2,16 +2,27 @@ plugins {
     id 'com.android.application'
 }
 
+
+static def generateVersionCode() {
+    def result = "git rev-list HEAD --count".execute().text.trim() //unix
+    if(result.empty) result = "PowerShell -Command git rev-list HEAD --count".execute().text.trim() //windows
+    if(result.empty) throw new RuntimeException("Could not generate versioncode on this platform? Cmd output: ${result.text}")
+    return result.toInteger()
+}
+
 android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
 
+    def majorVersion = 1
+    def versionCode = generateVersionCode();
+    
     defaultConfig {
         applicationId "de.nidoca.webview.iptv"
         minSdk 26
         targetSdk 33
-        versionCode 1
-        versionName "1.0"
+        versionCode versionCode
+        versionName "${majorVersion}.${versionCode)}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
