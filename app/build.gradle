@@ -11,7 +11,7 @@ android {
     proc.consumeProcessOutput(commitCountOut, commitCountError)
     proc.waitForOrKill(1000)
      
-    def commitCountOutAsInt = commitCountOut as int
+    def commitCountOutAsInt = commitCountOut.toString().toInteger()
     def vName = "version 1.${commitCountOutAsInt}"
     
     println "build new version, name: ${vName}"
