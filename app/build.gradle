@@ -6,6 +6,7 @@ android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
  
+    def commitCountOut = new StringBuilder(), commitCountError = new StringBuilder()
     def proc = 'git rev-list --first-parent --count origin/main'.execute()
     proc.consumeProcessOutput(commitCountOut, commitCountError)
     proc.waitForOrKill(1000)
