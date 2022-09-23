@@ -6,12 +6,18 @@ android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
  
-    def versionPropsFile = file('version.properties')
-    def Properties versionProps = new Properties()
-    versionProps.load(new FileInputStream(versionPropsFile))
-    def code = versionProps['VERSION_CODE'].toInteger() + 1
-    versionProps['VERSION_CODE']=code.toString()
-    versionProps.store(versionPropsFile.newWriter(), null)
+    def code = 0;
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-list', '--first-parent', '--count', 'origin/master'
+            standardOutput = stdout
+        }
+        code = Integer.parseInt(stdout.toString().trim())
+    }
+    catch (ignored) {
+        return -1;
+    }
      
     def vName = "version 1.${code}"
     
