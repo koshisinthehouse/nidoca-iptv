@@ -6,8 +6,8 @@ android {
     namespace 'de.nidoca.webview.iptv'
     compileSdk 33
 
-    def versionCode = "git rev-list HEAD --count".execute().text.trim() //unix
-    println versionCode
+    def versionCode = 1
+
     def majorVersion = 1
     
     defaultConfig {
