@@ -10,7 +10,7 @@ android {
     try {
         def stdout = new ByteArrayOutputStream()
         exec {
-            commandLine 'git', 'rev-list', '--first-parent', '--count', 'origin/master'
+            commandLine 'git', 'rev-list', '--first-parent', '--count', 'origin/main'
             standardOutput = stdout
         }
         code = Integer.parseInt(stdout.toString().trim())
