@@ -12,7 +12,7 @@ android {
     proc.waitForOrKill(1000)
      
     def miVersion = commitCountOut
-    def vName = "version 1.${commitCountOut}"
+    def vName = "version 1."
     
     defaultConfig {
         applicationId "de.nidoca.webview.iptv"
