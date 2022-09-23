@@ -11,14 +11,14 @@ android {
     proc.consumeProcessOutput(commitCountOut, commitCountError)
     proc.waitForOrKill(1000)
      
-    def mVersion = 1
-    def vName = "1"
+    def miVersion = commitCountOut
+    def vName = "version 1.${commitCountOut}"
     
     defaultConfig {
         applicationId "de.nidoca.webview.iptv"
         minSdk 26
         targetSdk 33
-        versionCode 1
+        versionCode miVersion
         versionName vName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
