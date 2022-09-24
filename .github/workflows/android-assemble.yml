@@ -14,8 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        all_commits: true
-        all_tags: true
+        fetch-depth: "0"
     - name: set up JDK 11
       uses: actions/setup-java@v3
       with:
