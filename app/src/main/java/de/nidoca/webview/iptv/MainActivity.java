@@ -86,6 +86,7 @@ import de.nidoca.webview.iptv.view.StationArrayAdapter;
 
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -93,6 +94,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -234,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                 entries);
         listView.setAdapter(adapter);
 
+
     }
 
     @Override
@@ -280,19 +284,12 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-
-        ImageView iv = (ImageView) findViewById(R.id.m3u_url_save_btn);
-        iv.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-
-            }
+        ImageView iv = findViewById(R.id.m3u_url_save_btn);
+        iv.setOnClickListener(view -> {
+            EditText editText = findViewById(R.id.m3_url_text);
+            String url = editText.getText().toString();
+            new LoadM3U(this, listView).execute(url);
         });
-
-        //VideoView videoView = binding.videoView;
-        //videoView.setVideoURI(Uri.parse("http://comag.rip:8000/00159101576765/61790209632447/76246?checkedby:iptvcat.com"));
-
-        //videoView.start();
 
         //exoPlayerView - start
         exoPlayerView = binding.playerView;
@@ -315,9 +312,8 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //exoPlayerView - end
 
         //castPlayer - start
-        //Executors.newSingleThreadExecutor()
         CastContext
-                .getSharedInstance(getApplicationContext(), ContextCompat.getMainExecutor(this)).addOnCompleteListener(new OnCompleteListener<CastContext>() {
+                .getSharedInstance(getApplicationContext(), Executors.newSingleThreadExecutor()).addOnCompleteListener(new OnCompleteListener<CastContext>() {
                     @Override
                     public void onComplete(@NonNull Task<CastContext> task) {
                         castContext = task.getResult();
@@ -326,11 +322,8 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                         castPlayer.setSessionAvailabilityListener(MainActivity.this);
                         castSessionManager = castContext.getSessionManager();
                         castSession = castSessionManager.getCurrentCastSession();
-                        //WENN Session Manager dann kaputt muss auch removed werden ? https://developers.google.com/cast/docs/android_sender/integrate
-                        //castSessionManager.addSessionManagerListener(sessionManagerListener, CastSession.class);
                     }
                 });
-
         //castPlayer - end
 
         //exoPlayer - start
@@ -474,11 +467,8 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             mediaInfoBuilder.setContentType(mimeType);
             mediaInfoBuilder.setStreamDuration(castPlayer.getDuration() * 1000);
             mediaInfoBuilder.setMetadata(metadata);
-            MediaInfo mediaInfo = mediaInfoBuilder.build();
-
-            RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
-            MediaLoadOptions.Builder mediaLoadOptions = new MediaLoadOptions.Builder();
             JSONObject jsonObject = new JSONObject();
+            //ISSUE - start
             //https://github.com/google/ExoPlayer/issues/10591
             try {
                 JSONObject mediaItem = new JSONObject();
@@ -488,6 +478,13 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            mediaInfoBuilder.setCustomData(jsonObject);
+            //ISSUE - end
+
+            MediaInfo mediaInfo = mediaInfoBuilder.build();
+
+            RemoteMediaClient remoteMediaClient = castContext.getSessionManager().getCurrentCastSession().getRemoteMediaClient();
+            MediaLoadOptions.Builder mediaLoadOptions = new MediaLoadOptions.Builder();
             mediaLoadOptions.setCustomData(jsonObject);
             remoteMediaClient.load(mediaInfo, mediaLoadOptions.build());
 

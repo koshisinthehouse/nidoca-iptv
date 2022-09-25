@@ -1,5 +1,6 @@
 package de.nidoca.webview.iptv.m3u;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;

@@ -1,71 +1,54 @@
 package de.nidoca.webview.iptv.m3u;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 
-import de.nidoca.webview.iptv.MainActivity;
+import de.nidoca.webview.iptv.view.StationArrayAdapter;
 
 public class LoadM3U extends AsyncTask<String, Void, List<Entry>> {
 
-    private final MainActivity mA;
+    private final WeakReference<Context> contextWR;
     private ListView listView;
 
-    public LoadM3U(MainActivity mainActivity, ListView listView) {
-        this.mA = mainActivity;
+    public LoadM3U(Context context, ListView listView) {
+        this.contextWR = new WeakReference<>(context);
         this.listView = listView;
     }
 
     @Override
     protected List<Entry> doInBackground(String... strings) {
         List<Entry> entries;
-
         try {
-            // Create a URL for the desired page
-            URL url = new URL("https://raw.githubusercontent.com/PrinzMichiDE/iptv-kodi-german/master/ip-tv-german.m3u"); //My text file location
-            //First open the connection
+            URL url = new URL(strings[0]);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(60000); // timing out in a minute
-
+            conn.setConnectTimeout(10000);
             Parser parser = new Parser();
             InputStream inputStream = conn.getInputStream();
             entries = parser.parse(inputStream);
-
-            entries.forEach(entry -> {
-
-                //listItems.add(entry.getTvgName());
-                System.out.println(entry);
-            });
-
         } catch (Exception e) {
+            Toast.makeText(contextWR.get(), "Fehler beim Laden der M3U URL", Toast.LENGTH_SHORT).show();
             throw new RuntimeException(e);
-
         }
 
         return entries;
     }
 
     @Override
-    protected void onPostExecute(List<Entry> strings) {
-        super.onPostExecute(strings);
-        ArrayAdapter<Entry> adapter = new ArrayAdapter<Entry>(mA,
+    protected void onPostExecute(List<Entry> entries) {
+        super.onPostExecute(entries);
+        ArrayAdapter<Entry> adapter = new StationArrayAdapter(contextWR.get(),
                 android.R.layout.simple_list_item_1,
-                strings);
+                entries);
         listView.setAdapter(adapter);
-
-
-
     }
 
-    @Override
-    protected void onProgressUpdate(Void... values) {
-        super.onProgressUpdate(values);
-        System.out.println("GO");
-    }
 }
