@@ -13,11 +13,10 @@ android {
     println "git commit count: ${commitCountOut}, git commit error: ${commitCountError}"
 
     def code = commitCountOut.toString().toInteger()
-    
     def minVersion = code % 1000
+    def majVersion = ((code - minVersion)/1000) + 1    
     
-    
-    def vName = "version ${minVersion}"
+    def vName = "version ${majVersion}.${minVersion}"
     
     println "build new version, name: ${vName}"
     
