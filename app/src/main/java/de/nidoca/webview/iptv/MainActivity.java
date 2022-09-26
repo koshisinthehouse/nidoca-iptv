@@ -7,9 +7,11 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.google.android.exoplayer2.DeviceInfo;
@@ -85,8 +87,10 @@ import de.nidoca.webview.iptv.m3u.Parser;
 import de.nidoca.webview.iptv.view.StationArrayAdapter;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.Editable;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -113,11 +117,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
@@ -149,8 +155,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     private ActivityMainBinding binding;
 
     private Entry entry;
-
-    private ListView listView;
 
     // the local and remote players
     private ExoPlayer exoPlayer = null;
@@ -235,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         ArrayAdapter<Entry> adapter = new StationArrayAdapter(MainActivity.this,
                 android.R.layout.simple_list_item_1,
                 entries);
-        listView.setAdapter(adapter);
+        binding.list.setAdapter(adapter);
 
 
     }
@@ -287,8 +291,35 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         ImageView iv = findViewById(R.id.m3u_url_save_btn);
         iv.setOnClickListener(view -> {
             EditText editText = findViewById(R.id.m3_url_text);
-            String url = editText.getText().toString();
-            new LoadM3U(this, listView).execute(url);
+            String urlAsString = editText.getText().toString();
+            if (!Patterns.WEB_URL.matcher(urlAsString).matches()) {
+                //TODO: show validation errors
+            } else {
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                Looper mainLooper = Looper.getMainLooper();
+                Handler handler = new Handler(mainLooper);
+                executor.execute(() -> {
+                    List<Entry> entries;
+                    try {
+                        URL url = new URL(urlAsString);
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setConnectTimeout(10000);
+                        Parser parser = new Parser();
+                        InputStream inputStream = conn.getInputStream();
+                        entries = parser.parse(inputStream);
+                    } catch (Exception e) {
+                        Toast.makeText(MainActivity.this, "Fehler beim Laden der M3U URL", Toast.LENGTH_SHORT).show();
+                        throw new RuntimeException(e);
+                    }
+                    handler.post(() -> {
+                        ArrayAdapter<Entry> adapter = new StationArrayAdapter(MainActivity.this,
+                                android.R.layout.simple_list_item_1,
+                                entries);
+                        binding.list.setAdapter(adapter);
+                        binding.m3uUrlLayout.setVisibility(View.GONE);
+                    });
+                });
+            }
         });
 
         //exoPlayerView - start
@@ -298,10 +329,12 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         exoPlayerView.setFullscreenButtonClickListener(isFullScreen -> {
             if (isFullScreen) {
                 LinearLayout linearLayout = new LinearLayout(this);
-                linearLayout.setOrientation(LinearLayout.VERTICAL);
+                linearLayout.setOrientation(LinearLayout.HORIZONTAL);
                 ((ViewGroup) exoPlayerView.getParent()).removeView(exoPlayerView);
-                linearLayout.addView(exoPlayerView);
-                setContentView(linearLayout);
+                //linearLayout.addView(exoPlayerView);
+                setContentView(exoPlayerView);
+                //binding.getRoot().setOrientation(LinearLayout.VERTICAL);
+                exoPlayerView.setRotation(90);
                 exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
             } else {
                 setContentView(binding.getRoot());
@@ -313,16 +346,13 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
         //castPlayer - start
         CastContext
-                .getSharedInstance(getApplicationContext(), Executors.newSingleThreadExecutor()).addOnCompleteListener(new OnCompleteListener<CastContext>() {
-                    @Override
-                    public void onComplete(@NonNull Task<CastContext> task) {
-                        castContext = task.getResult();
-                        castPlayer = new CastPlayer(castContext);
-                        castPlayer.setPlayWhenReady(true);
-                        castPlayer.setSessionAvailabilityListener(MainActivity.this);
-                        castSessionManager = castContext.getSessionManager();
-                        castSession = castSessionManager.getCurrentCastSession();
-                    }
+                .getSharedInstance(getApplicationContext(), Executors.newSingleThreadExecutor()).addOnCompleteListener(task -> {
+                    castContext = task.getResult();
+                    castPlayer = new CastPlayer(castContext);
+                    castPlayer.setPlayWhenReady(true);
+                    castPlayer.setSessionAvailabilityListener(MainActivity.this);
+                    castSessionManager = castContext.getSessionManager();
+                    castSession = castSessionManager.getCurrentCastSession();
                 });
         //castPlayer - end
 
@@ -360,8 +390,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //toolbar - end
 
         //listView - start
-        listView = binding.list;
-        listView.setOnItemClickListener((parent, view, position, id) -> {
+        binding.list.setOnItemClickListener((parent, view, position, id) -> {
             Entry entry = (Entry) parent.getItemAtPosition(position);
             this.entry = entry;
             startPlayback();
@@ -437,20 +466,21 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             DefaultMediaSourceFactory defaultMediaSourceFactory = new DefaultMediaSourceFactory(this);
             MediaSource mediaSource = defaultMediaSourceFactory.createMediaSource(mediaItem);
 
-            mediaSource.addEventListener(new Handler() {
-            }, new MediaSourceEventListener() {
-                @Override
-                public void onLoadCompleted(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
-                    MediaSourceEventListener.super.onLoadCompleted(windowIndex, mediaPeriodId, loadEventInfo, new MediaLoadData(DATA_TYPE_MEDIA));
-                    System.out.println(mediaLoadData.mediaEndTimeMs);
-                }
+            /**
+             mediaSource.addEventListener(new Handler() {
+             }, new MediaSourceEventListener() {
+            @Override public void onLoadCompleted(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, LoadEventInfo loadEventInfo, MediaLoadData mediaLoadData) {
+            MediaSourceEventListener.super.onLoadCompleted(windowIndex, mediaPeriodId, loadEventInfo, new MediaLoadData(DATA_TYPE_MEDIA));
+            System.out.println(mediaLoadData.mediaEndTimeMs);
+            }
             });
-            mediaSource.addDrmEventListener(new Handler(), new DrmSessionEventListener() {
-                @Override
-                public void onDrmSessionAcquired(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, int state) {
-                    DrmSessionEventListener.super.onDrmSessionAcquired(windowIndex, mediaPeriodId, state);
-                }
+             mediaSource.addDrmEventListener(new Handler(), new DrmSessionEventListener() {
+            @Override public void onDrmSessionAcquired(int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, int state) {
+            DrmSessionEventListener.super.onDrmSessionAcquired(windowIndex, mediaPeriodId, state);
+            }
             });
+             */
+
             exoPlayer.setMediaSource(mediaSource);
 
             exoPlayer.prepare();
@@ -508,7 +538,11 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             return true;
         }
         if (id == R.id.action_url_input) {
-            //TODO:
+            if (binding.m3uUrlLayout.getVisibility() == View.VISIBLE) {
+                binding.m3uUrlLayout.setVisibility(View.GONE);
+            } else {
+                binding.m3uUrlLayout.setVisibility(View.VISIBLE);
+            }
             return true;
         }
         if (id == R.id.action_info) {
@@ -521,13 +555,15 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     @Override
     public void onCastSessionAvailable() {
         switchCurrentPlayer(castPlayer);
+        this.exoPlayerView.setVisibility(View.INVISIBLE);
         startPlayback();
     }
 
     @Override
     public void onCastSessionUnavailable() {
         switchCurrentPlayer(exoPlayer);
-        //startPlayback();
+        this.exoPlayerView.setVisibility(View.VISIBLE);
+        startPlayback();
     }
 
 }
