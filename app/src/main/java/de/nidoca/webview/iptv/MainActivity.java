@@ -328,16 +328,20 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         exoPlayerView.setControllerAutoShow(false);
         exoPlayerView.setFullscreenButtonClickListener(isFullScreen -> {
             if (isFullScreen) {
-                LinearLayout linearLayout = new LinearLayout(this);
-                linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+                binding.normalLayout.setVisibility(View.GONE);
+                binding.fullscreenLayout.setVisibility(View.VISIBLE);
                 ((ViewGroup) exoPlayerView.getParent()).removeView(exoPlayerView);
+                binding.fullscreenLayout.addView(exoPlayerView);
+                //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                //LinearLayout linearLayout = new LinearLayout(this);
+                //linearLayout.setOrientation(LinearLayout.HORIZONTAL);
                 //linearLayout.addView(exoPlayerView);
-                setContentView(exoPlayerView);
                 //binding.getRoot().setOrientation(LinearLayout.VERTICAL);
-                exoPlayerView.setRotation(90);
-                exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+                //exoPlayerView.setRotation(90);
+                //exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
             } else {
-                setContentView(binding.getRoot());
+                binding.normalLayout.setVisibility(View.VISIBLE);
+                binding.fullscreenLayout.setVisibility(View.GONE);
                 ((ViewGroup) exoPlayerView.getParent()).removeView(exoPlayerView);
                 playerViewParent.addView(exoPlayerView);
             }

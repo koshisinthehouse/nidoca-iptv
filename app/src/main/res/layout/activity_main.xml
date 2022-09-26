@@ -1,83 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:stretchColumns="1"
     tools:context=".MainActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <RelativeLayout
+        android:id="@+id/fullscreenLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_span="2"
-        android:theme="@style/Theme.Nidocaiptv.AppBarOverlay">
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="@color/secondary_500">
+    </RelativeLayout>
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+
+    <LinearLayout
+        android:id="@+id/normalLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.Nidocaiptv.PopupOverlay" />
+            android:layout_height="wrap_content"
+            android:layout_span="2"
+            android:theme="@style/Theme.Nidocaiptv.AppBarOverlay">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/Theme.Nidocaiptv.PopupOverlay" />
+
+            <LinearLayout
+                android:id="@+id/m3u_url_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvName"
+                    android:layout_width="101dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/m3u_url" />
+
+                <EditText
+                    android:id="@+id/m3_url_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:autofillHints="http,https,http://,https://"
+                    android:ems="10"
+                    android:inputType="textUri" />
+
+                <ImageButton
+                    android:id="@+id/m3u_url_save_btn"
+                    style="@android:style/Widget.DeviceDefault.ImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/secondary_500"
+                    android:visibility="visible"
+                    app:srcCompat="@drawable/ic_baseline_playlist_add_check_24" />
+
+            </LinearLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
 
         <LinearLayout
-            android:id="@+id/m3u_url_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/tvName"
-                android:layout_width="101dp"
-                android:layout_height="wrap_content"
-                android:text="@string/m3u_url" />
-
-            <EditText
-                android:id="@+id/m3_url_text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:autofillHints="http,https,http://,https://"
-                android:ems="10"
-                android:inputType="textUri" />
-
-            <ImageButton
-                android:id="@+id/m3u_url_save_btn"
-                style="@android:style/Widget.DeviceDefault.ImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:backgroundTint="@color/secondary_500"
-                android:visibility="visible"
-                app:srcCompat="@drawable/ic_baseline_playlist_add_check_24" />
+            android:layout_height="250dp"
+            android:background="@color/secondary_500"
+            android:orientation="horizontal">
+            <com.google.android.exoplayer2.ui.StyledPlayerView
+                android:id="@+id/player_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/black"
+                app:resize_mode="fixed_width"
+                app:show_buffering="when_playing"
+                app:show_shuffle_button="true"
+                app:surface_type="texture_view" />
 
         </LinearLayout>
 
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:orientation="horizontal">
-
-        <com.google.android.exoplayer2.ui.StyledPlayerView
-            android:id="@+id/player_view"
+        <ListView
+            android:id="@android:id/list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/black"
-            app:show_buffering="when_playing"
-            app:show_shuffle_button="true"
-            app:surface_type="texture_view" />
+            android:layout_height="match_parent">
+
+        </ListView>
+
     </LinearLayout>
 
-    <ListView
-        android:id="@android:id/list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
-    </ListView>
-
-
-</LinearLayout>
+</RelativeLayout>
