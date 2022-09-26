@@ -14,7 +14,7 @@ android {
 
     def code = commitCountOut.toString().toInteger()
     
-    def minVersion = code % 1000 / 110
+    def minVersion = code % 1000
     def majVersion = ((code - minVersion)/1000))+1
     
     def vName = "version ${majVersion}.${minVersion}"
