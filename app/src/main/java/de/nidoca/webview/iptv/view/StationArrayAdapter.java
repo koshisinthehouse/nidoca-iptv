@@ -31,7 +31,7 @@ public class StationArrayAdapter extends ArrayAdapter<Entry> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_view_item, parent, false);
         }
         // Lookup view for data population
-        TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
+        TextView tvName = (TextView) convertView.findViewById(R.id.tv_name);
         TextView tvHome = (TextView) convertView.findViewById(R.id.tvHome);
         // Populate the data into the template view using the data object
         tvName.setText(entry.getTvgId());

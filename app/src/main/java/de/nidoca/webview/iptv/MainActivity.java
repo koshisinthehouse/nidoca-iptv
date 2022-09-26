@@ -91,6 +91,7 @@ import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.util.Patterns;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -103,6 +104,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -161,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     private CastPlayer castPlayer = null;
     private Player currentPlayer = null;
     private StyledPlayerView exoPlayerView;
-    private ViewGroup playerViewParent;
 
     // the Cast context
     private MenuItem castMenuItem;
@@ -239,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         ArrayAdapter<Entry> adapter = new StationArrayAdapter(MainActivity.this,
                 android.R.layout.simple_list_item_1,
                 entries);
-        binding.list.setAdapter(adapter);
+        binding.stationList.setAdapter(adapter);
 
 
     }
@@ -315,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                         ArrayAdapter<Entry> adapter = new StationArrayAdapter(MainActivity.this,
                                 android.R.layout.simple_list_item_1,
                                 entries);
-                        binding.list.setAdapter(adapter);
+                        binding.stationList.setAdapter(adapter);
                         binding.m3uUrlLayout.setVisibility(View.GONE);
                     });
                 });
@@ -323,27 +324,21 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         });
 
         //exoPlayerView - start
-        exoPlayerView = binding.playerView;
-        playerViewParent = (ViewGroup) exoPlayerView.getParent();
+        exoPlayerView = binding.exoPlayerView;
         exoPlayerView.setControllerAutoShow(false);
         exoPlayerView.setFullscreenButtonClickListener(isFullScreen -> {
             if (isFullScreen) {
-                binding.normalLayout.setVisibility(View.GONE);
-                binding.fullscreenLayout.setVisibility(View.VISIBLE);
-                ((ViewGroup) exoPlayerView.getParent()).removeView(exoPlayerView);
-                binding.fullscreenLayout.addView(exoPlayerView);
-                //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                //LinearLayout linearLayout = new LinearLayout(this);
-                //linearLayout.setOrientation(LinearLayout.HORIZONTAL);
-                //linearLayout.addView(exoPlayerView);
-                //binding.getRoot().setOrientation(LinearLayout.VERTICAL);
-                //exoPlayerView.setRotation(90);
-                //exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+                binding.stationList.setVisibility(View.GONE);
+                binding.toolbarLayout.setVisibility(View.GONE);
+                binding.exoPlayerView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             } else {
-                binding.normalLayout.setVisibility(View.VISIBLE);
-                binding.fullscreenLayout.setVisibility(View.GONE);
-                ((ViewGroup) exoPlayerView.getParent()).removeView(exoPlayerView);
-                playerViewParent.addView(exoPlayerView);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                final float scale = getResources().getDisplayMetrics().density;
+                int pixels = (int) (250 * scale + 0.5f);
+                binding.exoPlayerView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, pixels));
+                binding.stationList.setVisibility(View.VISIBLE);
+                binding.toolbarLayout.setVisibility(View.VISIBLE);
             }
         });
         //exoPlayerView - end
@@ -394,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         //toolbar - end
 
         //listView - start
-        binding.list.setOnItemClickListener((parent, view, position, id) -> {
+        binding.stationList.setOnItemClickListener((parent, view, position, id) -> {
             Entry entry = (Entry) parent.getItemAtPosition(position);
             this.entry = entry;
             startPlayback();
