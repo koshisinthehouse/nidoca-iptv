@@ -171,7 +171,7 @@ ADDED from /home/runner/work/nidoca-iptv/nidoca-iptv/app/src/main/AndroidManifes
 activity#de.nidoca.webview.iptv.MainActivity
 ADDED from /home/runner/work/nidoca-iptv/nidoca-iptv/app/src/main/AndroidManifest.xml:23:9-36:20
 	android:screenOrientation
-		ADDED from /home/runner/work/nidoca-iptv/nidoca-iptv/app/src/main/AndroidManifest.xml:27:13-50
+		ADDED from /home/runner/work/nidoca-iptv/nidoca-iptv/app/src/main/AndroidManifest.xml:27:13-49
 	android:exported
 		ADDED from /home/runner/work/nidoca-iptv/nidoca-iptv/app/src/main/AndroidManifest.xml:26:13-36
 	android:configChanges
