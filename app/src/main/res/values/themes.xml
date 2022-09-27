@@ -12,8 +12,6 @@
         <!-- status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <item name="android:windowFullscreen">true</item>
-        <item name="windowActionBar">false</item>
-
     </style>
 
     <style name="Theme.Nidocaiptv.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />

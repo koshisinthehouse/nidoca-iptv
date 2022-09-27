@@ -96,8 +96,6 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
             });
 
 
-    private AppBarConfiguration appBarConfiguration;
-
     private ActivityMainBinding binding;
 
     private Entry entry;
@@ -138,8 +136,6 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
                 android.R.layout.simple_list_item_1,
                 entries);
         binding.stationList.setAdapter(adapter);
-
-
     }
 
     @Override
