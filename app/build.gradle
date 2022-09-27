@@ -22,7 +22,7 @@ android {
     
     defaultConfig {
         applicationId "de.nidoca.webview.iptv"
-        minSdk 26
+        minSdk 21
         targetSdk 33
         versionCode code
         versionName vName
