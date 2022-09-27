@@ -1,6 +1,9 @@
 package de.nidoca.webview.iptv;
 
 
+import static com.google.android.exoplayer2.C.SELECTION_FLAG_DEFAULT;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -12,10 +15,14 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.Tracks;
 import com.google.android.exoplayer2.ext.cast.CastPlayer;
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionParameters;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
+import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.MediaInfo;
@@ -173,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
         super.onResume();
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -218,18 +226,22 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
 
         //exoPlayerView - start
         exoPlayerView = binding.exoPlayerView;
+        SubtitleView subtitleView = exoPlayerView.getSubtitleView();
+        if (subtitleView != null)
+            subtitleView.setVisibility(View.GONE);
         exoPlayerView.setControllerAutoShow(false);
         exoPlayerView.setFullscreenButtonClickListener(isFullScreen -> {
             if (isFullScreen) {
                 binding.stationList.setVisibility(View.GONE);
                 binding.toolbarLayout.setVisibility(View.GONE);
-                binding.exoPlayerView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                ViewGroup.LayoutParams layoutParams = binding.exoPlayerView.getLayoutParams();
+                layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             } else {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 final float scale = getResources().getDisplayMetrics().density;
-                int pixels = (int) (250 * scale + 0.5f);
-                binding.exoPlayerView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, pixels));
+                ViewGroup.LayoutParams layoutParams = binding.exoPlayerView.getLayoutParams();
+                layoutParams.height = (int) (220 * scale + 0.5f);
                 binding.stationList.setVisibility(View.VISIBLE);
                 binding.toolbarLayout.setVisibility(View.VISIBLE);
             }
@@ -252,6 +264,13 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
         //must init after CastContext
         exoPlayer = new ExoPlayer.Builder(this).build();
         exoPlayer.setPlayWhenReady(true);
+        exoPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onTracksChanged(Tracks tracks) {
+
+                // Update UI using current tracks.
+            }
+        });
         //exoPlayer.setRepeatMode(Player.REPEAT_MODE_ALL);
         exoPlayer.addListener(new Player.Listener() {
             @Override
@@ -347,12 +366,13 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
             MediaItem.Builder mediaItemBuilder = new MediaItem.Builder();
             mediaItemBuilder.setUri(channelUrl);
             mediaItemBuilder.setMimeType(mimeType);
-            mediaItemBuilder.setClippingConfiguration(
-                    new MediaItem.ClippingConfiguration.Builder()
-                            .setStartPositionMs(0l)
-                            .setEndPositionMs(20000000000000l)
-                            .build());
-
+            /**
+             mediaItemBuilder.setClippingConfiguration(
+             new MediaItem.ClippingConfiguration.Builder()
+             .setStartPositionMs(0l)
+             .setEndPositionMs(20000000000000l)
+             .build());
+             */
             new MediaItem.SubtitleConfiguration.Builder(channelUri)
                     .setMimeType(MimeTypes.APPLICATION_SUBRIP)
                     .setLabel(channelName)
