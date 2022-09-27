@@ -13,11 +13,11 @@ import com.google.android.exoplayer2.MediaItem;
 
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ext.cast.CastPlayer;
-import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener;
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.exoplayer2.util.MimeTypes;
+import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaLoadOptions;
 import com.google.android.gms.cast.MediaMetadata;
@@ -27,6 +27,7 @@ import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
+import com.google.android.gms.common.images.WebImage;
 import com.google.common.io.ByteStreams;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -72,7 +73,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-public class MainActivity extends AppCompatActivity implements SessionAvailabilityListener {
+public class MainActivity extends AppCompatActivity implements SessionManagerListener<CastSession> {
 
 
     private String appM3UFileName = "app.m3u";
@@ -112,53 +113,6 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     private CastContext castContext;
     private CastSession castSession;
     private SessionManager castSessionManager;
-    private SessionManagerListener<CastSession> sessionManagerListener =
-            new SessionManagerListenerImpl();
-
-    private class SessionManagerListenerImpl implements SessionManagerListener<CastSession> {
-        @Override
-        public void onSessionStarted(CastSession session, String sessionId) {
-        }
-
-        @Override
-        public void onSessionStarting(@NonNull CastSession castSession) {
-
-        }
-
-        @Override
-        public void onSessionSuspended(@NonNull CastSession castSession, int i) {
-
-        }
-
-        @Override
-        public void onSessionResumed(CastSession session, boolean wasSuspended) {
-        }
-
-        @Override
-        public void onSessionResuming(@NonNull CastSession castSession, @NonNull String s) {
-
-        }
-
-        @Override
-        public void onSessionStartFailed(@NonNull CastSession castSession, int i) {
-
-        }
-
-        @Override
-        public void onSessionEnded(CastSession session, int error) {
-            finish();
-        }
-
-        @Override
-        public void onSessionEnding(@NonNull CastSession castSession) {
-
-        }
-
-        @Override
-        public void onSessionResumeFailed(@NonNull CastSession castSession, int i) {
-
-        }
-    }
 
     public void initStations() {
         File directory = getFilesDir();
@@ -190,20 +144,20 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
     @Override
     protected void onPause() {
-        super.onPause();
         if (this.currentPlayer == this.exoPlayer) {
             this.currentPlayer.stop();
         }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        super.onPause();
     }
 
     @Override
     protected void onStop() {
-        super.onStop();
         if (this.currentPlayer == this.exoPlayer) {
             this.currentPlayer.stop();
         }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        super.onStop();
     }
 
     @Override
@@ -217,10 +171,10 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
 
     @Override
     protected void onResume() {
-        super.onResume();
         if (this.currentPlayer == this.exoPlayer) {
             this.currentPlayer.prepare();
         }
+        super.onResume();
     }
 
     @Override
@@ -292,9 +246,9 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
                     castContext = task.getResult();
                     castPlayer = new CastPlayer(castContext);
                     castPlayer.setPlayWhenReady(true);
-                    castPlayer.setSessionAvailabilityListener(MainActivity.this);
                     castSessionManager = castContext.getSessionManager();
                     castSession = castSessionManager.getCurrentCastSession();
+                    castSessionManager.addSessionManagerListener(this, CastSession.class);
                 });
         //castPlayer - end
 
@@ -379,6 +333,7 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
         }
 
         String tvgId = entry.getTvgId();
+        String tvgLogo = entry.getTvgLogo();
         String tvgName = entry.getTvgName();
         String channelName = entry.getChannelName();
         String channelUrl = entry.getChannelUri();
@@ -435,8 +390,9 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
             MediaMetadata metadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
             metadata.putString(MediaMetadata.KEY_TITLE, tvgId);
             metadata.putString(MediaMetadata.KEY_SUBTITLE, tvgName);
-            //metadata.addImage(WebImage(Uri.parse("any-image-url")));
-
+            if (tvgLogo != null && Patterns.WEB_URL.matcher(tvgLogo).matches()) {
+                metadata.addImage(new WebImage(Uri.parse(tvgLogo)));
+            }
             MediaInfo.Builder mediaInfoBuilder = new MediaInfo.Builder(channelUrl);
             mediaInfoBuilder.setStreamType(MediaInfo.STREAM_TYPE_LIVE);
             mediaInfoBuilder.setContentType(mimeType);
@@ -498,17 +454,47 @@ public class MainActivity extends AppCompatActivity implements SessionAvailabili
     }
 
     @Override
-    public void onCastSessionAvailable() {
+    public void onSessionEnded(@NonNull CastSession castSession, int i) {
+        switchCurrentPlayer(exoPlayer);
+        this.exoPlayerView.setVisibility(View.VISIBLE);
+        startPlayback();
+
+    }
+
+    @Override
+    public void onSessionEnding(@NonNull CastSession castSession) {
+        this.exoPlayerView.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onSessionResumeFailed(@NonNull CastSession castSession, int i) {
+    }
+
+    @Override
+    public void onSessionResumed(@NonNull CastSession castSession, boolean b) {
+    }
+
+    @Override
+    public void onSessionResuming(@NonNull CastSession castSession, @NonNull String s) {
+    }
+
+    @Override
+    public void onSessionStartFailed(@NonNull CastSession castSession, int i) {
+    }
+
+    @Override
+    public void onSessionStarted(@NonNull CastSession castSession, @NonNull String s) {
         switchCurrentPlayer(castPlayer);
-        this.exoPlayerView.setVisibility(View.INVISIBLE);
         startPlayback();
     }
 
     @Override
-    public void onCastSessionUnavailable() {
-        switchCurrentPlayer(exoPlayer);
-        this.exoPlayerView.setVisibility(View.VISIBLE);
-        startPlayback();
+    public void onSessionStarting(@NonNull CastSession castSession) {
+        this.exoPlayerView.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onSessionSuspended(@NonNull CastSession castSession, int i) {
     }
 
 }
