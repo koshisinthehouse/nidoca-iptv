@@ -1,8 +1,6 @@
 package de.nidoca.webview.iptv;
 
 
-import static com.google.android.exoplayer2.C.SELECTION_FLAG_DEFAULT;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -19,12 +17,9 @@ import com.google.android.exoplayer2.Tracks;
 import com.google.android.exoplayer2.ext.cast.CastPlayer;
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelectionParameters;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaLoadOptions;
 import com.google.android.gms.cast.MediaMetadata;
@@ -43,7 +38,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.navigation.ui.AppBarConfiguration;
 
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 import de.nidoca.webview.iptv.m3u.Entry;
@@ -52,6 +46,7 @@ import de.nidoca.webview.iptv.view.StationArrayAdapter;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.util.Patterns;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -61,7 +56,6 @@ import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -226,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
 
         //exoPlayerView - start
         exoPlayerView = binding.exoPlayerView;
+        binding.exoPlayerView.getLayoutParams().height = calculateCurrentPlayerHeight();
         SubtitleView subtitleView = exoPlayerView.getSubtitleView();
         if (subtitleView != null)
             subtitleView.setVisibility(View.GONE);
@@ -234,14 +229,12 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
             if (isFullScreen) {
                 binding.stationList.setVisibility(View.GONE);
                 binding.toolbarLayout.setVisibility(View.GONE);
-                ViewGroup.LayoutParams layoutParams = binding.exoPlayerView.getLayoutParams();
-                layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                binding.exoPlayerView.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             } else {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 final float scale = getResources().getDisplayMetrics().density;
-                ViewGroup.LayoutParams layoutParams = binding.exoPlayerView.getLayoutParams();
-                layoutParams.height = (int) (220 * scale + 0.5f);
+                binding.exoPlayerView.getLayoutParams().height = calculateCurrentPlayerHeight();
                 binding.stationList.setVisibility(View.VISIBLE);
                 binding.toolbarLayout.setVisibility(View.VISIBLE);
             }
@@ -310,6 +303,19 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
         //listView - end
 
 
+    }
+
+    /**
+     * calculate exo player view height, depending on device screen size.
+     *
+     * @return calculated height of exo player view.
+     */
+    private int calculateCurrentPlayerHeight() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int width = displayMetrics.widthPixels;
+        int height = displayMetrics.heightPixels;
+        return (int) ((Math.min(width, height)) * 0.5675);
     }
 
     private void switchCurrentPlayer(Player newPlayer) {
