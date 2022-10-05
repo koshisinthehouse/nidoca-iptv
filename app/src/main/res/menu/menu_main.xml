@@ -3,29 +3,37 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="de.nidoca.webview.iptv.MainActivity">
 
+    <item
+        android:id="@+id/action_url_import"
+        android:icon="@drawable/ic_baseline_playlist_add_24"
+        android:title="@string/m3u_url_import_checked"
+        app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_url_input"
-        android:title="@string/m3u_url_input"
-        android:icon="@drawable/ic_baseline_playlist_add_24"
+        android:id="@+id/action_url_import_checked"
+        android:checked="true"
+        android:icon="@drawable/ic_baseline_playlist_add_check_24"
+        android:title="@string/m3u_url_import_checked"
+        android:visible="false"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_upload"
-        android:title="@string/action_settings"
         android:icon="@drawable/ic_baseline_file_upload_24"
+        android:title="@string/action_settings"
         app:showAsAction="always" />
 
-    <item android:id="@+id/media_route_menu_item"
-        android:title="@string/media_route_menu_title"
-        app:showAsAction="always"
+    <item
+        android:id="@+id/media_route_menu_item"
         android:icon="@drawable/ic_baseline_cast_24"
-        app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"/>
+        android:title="@string/media_route_menu_title"
+        app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_info"
-        android:title="@string/action_settings"
         android:icon="@drawable/ic_baseline_info_24"
+        android:title="@string/action_settings"
         app:showAsAction="always" />
 
 </menu>

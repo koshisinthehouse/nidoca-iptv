@@ -37,6 +37,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.appcompat.view.menu.ActionMenuItemView;
 import androidx.appcompat.widget.Toolbar;
 
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
@@ -55,7 +56,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
                         fos.close();
                         initStations();
                     } catch (IOException e) {
-                        Toast.makeText(MainActivity.this, "error reading file", Toast.LENGTH_SHORT);
+                        Toast.makeText(MainActivity.this, "error reading file", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -183,40 +183,6 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        ImageView iv = findViewById(R.id.m3u_url_save_btn);
-        iv.setOnClickListener(view -> {
-            EditText editText = findViewById(R.id.m3_url_text);
-            String urlAsString = editText.getText().toString();
-            if (!Patterns.WEB_URL.matcher(urlAsString).matches()) {
-                //TODO: show validation errors
-            } else {
-                ExecutorService executor = Executors.newSingleThreadExecutor();
-                Looper mainLooper = Looper.getMainLooper();
-                Handler handler = new Handler(mainLooper);
-                executor.execute(() -> {
-                    List<Entry> entries;
-                    try {
-                        URL url = new URL(urlAsString);
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                        conn.setConnectTimeout(10000);
-                        Parser parser = new Parser();
-                        InputStream inputStream = conn.getInputStream();
-                        entries = parser.parse(inputStream);
-                    } catch (Exception e) {
-                        Toast.makeText(MainActivity.this, "Fehler beim Laden der M3U URL", Toast.LENGTH_SHORT).show();
-                        throw new RuntimeException(e);
-                    }
-                    handler.post(() -> {
-                        ArrayAdapter<Entry> adapter = new StationArrayAdapter(MainActivity.this,
-                                android.R.layout.simple_list_item_1,
-                                entries);
-                        binding.stationList.setAdapter(adapter);
-                        binding.m3uUrlLayout.setVisibility(View.GONE);
-                    });
-                });
-            }
-        });
 
         //exoPlayerView - start
         exoPlayerView = binding.exoPlayerView;
@@ -451,6 +417,7 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
         return true;
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -460,14 +427,66 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
             mStartForResult.launch(intent);
             return true;
         }
-        if (id == R.id.action_url_input) {
-            if (binding.m3uUrlLayout.getVisibility() == View.VISIBLE) {
-                binding.m3uUrlLayout.setVisibility(View.GONE);
+        if (id == R.id.action_url_import_checked) {
+
+
+            EditText editText = findViewById(R.id.m3_url_text);
+            String urlAsString = editText.getText().toString();
+            if (!Patterns.WEB_URL.matcher(urlAsString).matches()) {
+                //TODO: show validation errors
             } else {
-                binding.m3uUrlLayout.setVisibility(View.VISIBLE);
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                Looper mainLooper = Looper.getMainLooper();
+                Handler handler = new Handler(mainLooper);
+                executor.execute(() -> {
+                    List<Entry> entries;
+                    try {
+                        URL url = new URL(urlAsString);
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setConnectTimeout(10000);
+                        Parser parser = new Parser();
+                        InputStream inputStream = conn.getInputStream();
+                        entries = parser.parse(inputStream);
+                    } catch (Exception e) {
+                        Toast.makeText(MainActivity.this, "Fehler beim Laden der M3U URL", Toast.LENGTH_SHORT).show();
+                        throw new RuntimeException(e);
+                    }
+                    handler.post(() -> {
+                        ArrayAdapter<Entry> adapter = new StationArrayAdapter(MainActivity.this,
+                                android.R.layout.simple_list_item_1,
+                                entries);
+                        binding.stationList.setAdapter(adapter);
+                        Toast.makeText(MainActivity.this, "m3u stations successfully loaded.", Toast.LENGTH_SHORT).show();
+                    });
+                });
             }
+
+            Toolbar toolbar = findViewById(R.id.toolbar);
+            MenuItem actionUrlImportChecked = toolbar.getMenu().findItem(R.id.action_url_import_checked);
+            actionUrlImportChecked.setVisible(false);
+
+            MenuItem actionUrlImport = toolbar.getMenu().findItem(R.id.action_url_import);
+            actionUrlImport.setVisible(true);
+
+            binding.m3UrlText.setVisibility(View.GONE);
+
             return true;
         }
+
+        if (id == R.id.action_url_import) {
+
+            Toolbar toolbar = findViewById(R.id.toolbar);
+            MenuItem actionUrlImportChecked = toolbar.getMenu().findItem(R.id.action_url_import_checked);
+            actionUrlImportChecked.setVisible(true);
+
+            MenuItem actionUrlImport = toolbar.getMenu().findItem(R.id.action_url_import);
+            actionUrlImport.setVisible(false);
+
+            binding.m3UrlText.setVisibility(View.VISIBLE);
+
+            return true;
+        }
+
         if (id == R.id.action_info) {
             //TODO:
             return true;
