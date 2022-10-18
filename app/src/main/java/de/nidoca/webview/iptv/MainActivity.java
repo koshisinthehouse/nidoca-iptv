@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.google.android.exoplayer2.ExoPlayer;
@@ -37,8 +38,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.appcompat.view.menu.ActionMenuItemView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 import de.nidoca.webview.iptv.databinding.ActivityMainBinding;
 import de.nidoca.webview.iptv.m3u.Entry;
@@ -77,9 +78,9 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity implements SessionManagerListener<CastSession> {
 
 
-    private String appM3UFileName = "app.m3u";
+    private final String appM3UFileName = "app.m3u";
 
-    private ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+    private final ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
                     Intent intent = result.getData();
@@ -90,8 +91,9 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
                         fos.write(ByteStreams.toByteArray(inputStream));
                         fos.close();
                         initStations();
+                        Toast.makeText(this, getResources().getText(R.string.station_list_loaded_successfully), Toast.LENGTH_SHORT).show();
                     } catch (IOException e) {
-                        Toast.makeText(MainActivity.this, "error reading file", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, getResources().getText(R.string.error_station_list_file_load_data), Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -108,10 +110,10 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
     private StyledPlayerView exoPlayerView;
 
     // the Cast context
-    private MenuItem castMenuItem;
     private CastContext castContext;
     private CastSession castSession;
     private SessionManager castSessionManager;
+    private MenuItem castMenuItem;
 
     public void initStations() {
         File directory = getFilesDir();
@@ -119,17 +121,17 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
         if (!appM3UFile.exists()) {
             try {
                 if (!appM3UFile.createNewFile()) {
-                    Toast.makeText(this, "Fehler beim erstellen der Station Liste", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getResources().getText(R.string.error_station_list_file_create_new_file), Toast.LENGTH_SHORT).show();
                 }
             } catch (IOException e) {
-                Toast.makeText(this, "Fehler beim erstellen der Station Liste", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getText(R.string.error_station_list_file_create_new_file), Toast.LENGTH_SHORT).show();
             }
         }
         FileInputStream fileInputStream = null;
         try {
             fileInputStream = openFileInput(appM3UFileName);
         } catch (FileNotFoundException e) {
-            Toast.makeText(this, "Fehler beim öffnen der station datei", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getResources().getText(R.string.error_station_list_file_not_found), Toast.LENGTH_SHORT).show();
         }
         Parser parser = new Parser();
         List<Entry> entries = parser.parse(fileInputStream);
@@ -178,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
@@ -209,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
 
         //castPlayer - start
         CastContext
-                .getSharedInstance(getApplicationContext(), Executors.newSingleThreadExecutor()).addOnCompleteListener(task -> {
+                .getSharedInstance(getApplicationContext(), ContextCompat.getMainExecutor(this)).addOnCompleteListener(task -> {
                     castContext = task.getResult();
                     castPlayer = new CastPlayer(castContext);
                     castPlayer.setPlayWhenReady(true);
@@ -427,9 +430,13 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
             mStartForResult.launch(intent);
             return true;
         }
+
+        if (id == R.id.action_info) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://raw.githubusercontent.com/koshisinthehouse/nidoca-iptv/main/publish/imprint.html"));
+            startActivity(browserIntent);
+        }
+
         if (id == R.id.action_url_import_checked) {
-
-
             EditText editText = findViewById(R.id.m3_url_text);
             String urlAsString = editText.getText().toString();
             if (!Patterns.WEB_URL.matcher(urlAsString).matches()) {
@@ -448,7 +455,7 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
                         InputStream inputStream = conn.getInputStream();
                         entries = parser.parse(inputStream);
                     } catch (Exception e) {
-                        Toast.makeText(MainActivity.this, "Fehler beim Laden der M3U URL", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, getResources().getText(R.string.error_station_list_load_url), Toast.LENGTH_SHORT).show();
                         throw new RuntimeException(e);
                     }
                     handler.post(() -> {
@@ -456,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements SessionManagerLis
                                 android.R.layout.simple_list_item_1,
                                 entries);
                         binding.stationList.setAdapter(adapter);
-                        Toast.makeText(MainActivity.this, "m3u stations successfully loaded.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, getResources().getText(R.string.station_list_loaded_successfully), Toast.LENGTH_SHORT).show();
                     });
                 });
             }

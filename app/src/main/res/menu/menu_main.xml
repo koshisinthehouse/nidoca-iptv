@@ -6,34 +6,34 @@
     <item
         android:id="@+id/action_url_import"
         android:icon="@drawable/ic_baseline_playlist_add_24"
-        android:title="@string/m3u_url_import_checked"
+        android:title="@string/mi_playlist_add"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_url_import_checked"
         android:checked="true"
         android:icon="@drawable/ic_baseline_playlist_add_check_24"
-        android:title="@string/m3u_url_import_checked"
+        android:title="@string/mi_playlist_add_check"
         android:visible="false"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_upload"
         android:icon="@drawable/ic_baseline_file_upload_24"
-        android:title="@string/action_settings"
+        android:title="@string/mi_file_upload"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/media_route_menu_item"
         android:icon="@drawable/ic_baseline_cast_24"
-        android:title="@string/media_route_menu_title"
+        android:title="@string/mi_cast"
         app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_info"
         android:icon="@drawable/ic_baseline_info_24"
-        android:title="@string/action_settings"
+        android:title="@string/mi_info"
         app:showAsAction="always" />
 
 </menu>

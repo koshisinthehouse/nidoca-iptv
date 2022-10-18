@@ -1,8 +1,14 @@
 <resources>
     <string name="app_name">Nidoca IPTV</string>
-    <string name="action_settings">Settings</string>
-    <string name="media_route_menu_title">Cast</string>
-    <string name="m3u_url_import_checked">m3u</string>
-    <string name="m3u_url">URL</string>
-    <string name="m3_url_import_text">enter m3u url...</string>
+    <string name="m3_url_import_text">URL deiner M3U Datei</string>
+    <string name="error_station_list_file_create_new_file">Senderliste konnte nicht erstellt werden. Datei konnte nicht erstellt werden</string>
+    <string name="error_station_list_file_not_found">Die Datei konnte nicht gefunden werden</string>
+    <string name="error_station_list_file_load_data">Fehler beim Laden der Senderliste</string>
+    <string name="error_station_list_load_url">Die angegeben URL enthält keine gültige M3U Liste</string>
+    <string name="station_list_loaded_successfully">Die Senderliste wurde erfolgreich geladen</string>
+    <string name="mi_info">App Info</string>
+    <string name="mi_cast">Sender streamen</string>
+    <string name="mi_file_upload">M3U URL</string>
+    <string name="mi_playlist_add_check">Sender hinzufügen</string>
+    <string name="mi_playlist_add">Datei laden</string>
 </resources>
